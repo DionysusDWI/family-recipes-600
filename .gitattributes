@@ -1,0 +1,14 @@
+# ★★ 本仓库有**字节级契约**，行尾绝不可被 git 改写。
+#
+# 来源：本机**系统级** gitconfig 写着 `core.autocrlf=true`
+#   （`git config --show-origin --get core.autocrlf` 可复核；⛔ 不是仓库设置）。
+# 若不钉死，`git add` 会把 CRLF 件规范成 LF 存进索引，`git checkout` 又把 LF-only 件写成 CRLF。
+#
+# 为什么在这里是**承重**的：`kb/**/_pages/*.md` 是视觉模型的**逐字**输出，
+# 门禁 G0（幂等）与 G5/G9 都建立在**字节相等**上。行尾一旦被改写，转写正源不可逐字节复原。
+#
+# ⇒ 全树 `-text`：git 既不转换、也不猜测行尾。字节进来什么样，出去什么样。
+* -text
+
+# 二进制：`binary` 是 `-text -diff` 的宏，顺带让 diff/统计不再试图解读它们。
+*.npy binary

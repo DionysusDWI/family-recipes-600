@@ -1,0 +1,11 @@
+# 产物里⛔ 不得出现的字符串 —— 按用途分类。
+#   [watermark]        来源水印：**记名时剥掉**，且不得出现在任何产物里。
+#   [local-convention] 本机约定：不得出现；便携写法统一用 `<tmp>/…`。
+# ★★ 本表**自身必须被门豁免**：它按定义含有这些串（否则无法禁止它们）——
+#    与 config/forbidden-fragments.local.txt 同理，实测过「门扫到自己 ⇒ 永久假红」。
+# ⚠ 已知缺口：迁入的引擎里，G5 只实现了「绝对路径 ＋ 两条字面」，**没有读本表**。
+#    见 OPEN-ITEMS.md G-03 / G-04。
+[watermark]
+Z-Library
+[local-convention]
+system-temp

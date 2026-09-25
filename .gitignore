@@ -1,0 +1,23 @@
+# ★ 只排除**可再生且无证据价值**的东西。
+# ★★ 教训（已在 skill 仓实测）：**`.gitignore` 不支持行尾注释** —— `out/   # 产物` 会被当成
+#   「名字里带 # 的模式」，于是什么也忽略不掉。注释必须独占一行。
+# ★★ 另一条：「未跟踪 ≠ 已忽略」—— 不写这一份，`git add -A` 会把机器物扫进仓。
+
+# ── 机器物：绝不入仓
+#   `privacy-forbidden.local.txt` 是本机禁止串表（含本机路径名）。
+#   ★ **源件入口不在本仓内**：它是**任务槽根**的 junction `src-in`，由 series.yml 的
+#     source_root（`../../src-in`）以相对路径指过去 ⇒ 仓内没有任何指向源卷的链接，
+#     以仓根为起点的工具（privacy_audit / pack_release）都够不到源卷。见 G-05。
+privacy-forbidden.local.txt
+
+# ── 工程残留
+__pycache__/
+*.pyc
+
+# ── 易失区（槽内 scratch/ 本就易失；这里再挡一次误加）
+scratch/
+
+# ⛔ 以下**不**忽略，且是有意为之：
+#   kb/**/_pages/*.md        转写正源（视觉模型的逐字输出，是知识库的一部分）
+#   kb/**/corpus/vectors_*.npy  嵌入向量：重建要向 API 重新付费，且该通道实测不可复现
+#   kb/**/corpus/verify_report.json  门禁证据，每次重写都会产生 diff，这是**有意**的

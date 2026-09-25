@@ -1,0 +1,17 @@
+{
+  "_README": [
+    "★ 这是**模板**，不是真钥存放处：仓库里**永不**出现真钥（工作区 AGENTS.md §5.5）。",
+    "★ 真钥放到**仓外**的用户级文件里（挑一处，只放一行密钥；裸行可以，同样形状的 JSON 也可以）：",
+    "    ~/.dsh/siliconflow.key                          ← 首选（仓外）",
+    "    ~/.dsh/siliconflow_api_key.txt",
+    "    ~/.config/siliconflow/key",
+    "    ~/.config/family-recipes-600/siliconflow.key",
+    "    ~/.siliconflow.key",
+    "★ 或者：设环境变量 SILICONFLOW_API_KEY；或设 SILICONFLOW_KEY_FILE 指向你自己的路径。",
+    "★ 检索与向量用 SILICONFLOW_API_KEY；S1 逐页转写另用 DASHSCOPE_API_KEY（见 series.yml 的 s1.env_var）。",
+    "★ 读取阶梯（先找到先用）见 scripts/_keys.py：环境变量 → 仓外 key 文件 → 本模板。",
+    "★ 本模板命中时等于**没有键**：脚本会报 SKIP（⛔ 不是通过），不会静默降级。",
+    "★ 占位符故意**不写成任何密钥的形状**（否则工作区 secret-hygiene 门会判红）。"
+  ],
+  "SILICONFLOW_API_KEY": "<PUT_THE_REAL_KEY_OUTSIDE_THE_REPO>"
+}

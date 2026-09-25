@@ -1,0 +1,99 @@
+# series.yml —— 《巧做家庭菜600例》系列配置（skill：family-recipes-600）
+#
+# ★ 本件是**唯一的接口**：脚本只读本配置，⛔ 不内嵌任何册码／册名／路径。
+# ★ 校验：python scripts/s0c_series_check.py --series series.yml
+# ★ 相对路径一律以**本文件所在目录**为基准（本仓根＝知识库仓根）。
+#
+# ★★ 关于 source_root：值是**相对路径** `../../src-in`，指向**任务槽根**的 junction（目录联接）
+#    → 扫描件父目录。★ 这个 junction 在**本仓树之外**：
+#      · ⛔ 绝对路径不进本文件 —— `scripts/privacy_audit.py` 对全树扫「盘符」形态，命中即 FAIL；
+#      · ⛔ 也不放在仓内 —— 实测：放进仓内时 `rglob` **会穿过** junction，
+#        隐私复审把源卷上 19 个无关 PDF 当成本仓文件（见 OPEN-ITEMS.md G-05）。
+#    ⇒ 放在槽根：仓内任何以仓根为起点的工具都够不到源卷。
+
+series:
+  id: "family-recipes-600"           # 进向量签名与仓名；kebab 文法
+  title: "巧做家庭菜600例"            # ★ 取自印本封面（p0000 视觉实读），⛔ 不从文件名猜
+  out_root: "."                      # 本仓库根**就是**知识库仓根 ⇒ 产物落 ./kb/册码/
+  source_root: "../../src-in"         # ★ 相对路径 ⇒ 任务槽根的 junction → 扫描件父目录
+
+  # 语言与转写
+  language: "zh-Hans"
+  page_index_base: 0                 # 源件第 1 页记为 p0000
+
+  # 运行参数
+  render_dpi: 300                    # ★ 见 books[0].note 的实测：原生仅约 96 dpi ⇒ 300 是上采样，S1 须先标定
+  jobs: 4
+
+  # 转写（S1）：视觉模型与它的密钥来源
+  s1:
+    model: "qwen3.8-omni-flash"
+    env_var: "DASHSCOPE_API_KEY"
+
+  # 册（★ 册码**登记即固化**：⛔ 任何脚本不得「当场排序得到」）
+  books:
+    - code: B01
+      basename: "巧做家庭菜600例 (朴丰田口述； 穆里, 金岩整理) (Z-Library).pdf"
+      title: "巧做家庭菜600例"
+      title_source: "printed_cover"  # ★ 实读：p0000 封面（会话内视觉 · 200 dpi 渲染）
+      pages: 289                     # ★ 实测（S0 逐页），⛔ 不是自称值
+      note: "纯图 PDF：无文本层（首 20 页 0 字符）· 原生约 96 dpi（702×1043 px / 526.5×782.25 pt）· 单页单位图"
+
+# ★ 水印净化：来源水印**记名时剥掉**，⛔ 不得进任何产物。
+#   ★ 本册源件名里确实带 Z-Library 水印 —— 这是第一个真实带水印的实例。
+#   ⚠ 已知缺口：迁入的引擎**尚未实现** clean_basename（见 OPEN-ITEMS.md G-03）。
+watermark_strip:
+  - "Z-Library"
+
+# ── 装配契约：全部可配（技能与「某一套书」之间的接口）
+# ★★ 本段目前是**出厂默认**（与引擎内置同值）。
+#    真正生效前必须按**本册印刷体例**在 S1 转写样本上逐项标定；
+#    标定之前，S2 的 `contract_drift` 读数只作参考，⛔ 不得当成「本册没有变体」的证据。
+contract:
+  markers:
+    recipe_start: "@@RECIPE_START"
+    recipe_cont: "@@RECIPE_CONT"
+    section: "@@SECTION"
+    step: "@@STEP"
+    footer: "@@FOOTER"
+    toc: "@@TOC"
+  sections:
+    ingredients: ["原 料", "原料", "材 料"]
+    main: ["主 料", "主料"]
+    side: ["配 料", "配料"]
+    seasoning: ["调 料", "调料"]
+    method: ["制 法", "制法", "制  法", "做 法"]
+    notes: ["注 释", "注释"]
+  groups:
+    main: ["主 料：", "主料："]
+    side: ["配 料：", "配料："]
+    seasoning: ["调 料：", "调料："]
+  step_number_patterns:
+    - "^（\\d+）\\s*"
+    - "^\\d+\\.\\s*"
+    - "^\\(\\d+\\)\\s*"
+  recipe_number_pattern: "^\\d{1,4}$"
+  glossary_pattern: "^(?P<marker>[\\u2460-\\u2473\\u3251-\\u32BF])\\s*(?P<title>[^：]{1,20})：(?P<text>.+)$"
+
+# 检索与模型（★ 模型名**必须进向量签名**）
+retrieval:
+  embed_provider: "siliconflow"
+  embed_model: "Qwen/Qwen3-VL-Embedding-8B"
+  rerank_model: "Qwen/Qwen3-Reranker-8B"
+  rerank_default_on: true
+  fallback: "keyword"                # 零网络零密钥灾备：关键词分层
+
+# 密钥：⛔ 真钥不写在这里。读取阶梯＝环境变量 → 仓外 key 文件 → 仓内模板
+keys:
+  embed_provider: "siliconflow"
+  env_var: "SILICONFLOW_API_KEY"
+  key_file_candidates:
+    - "~/.dsh/siliconflow.key"
+    - "~/.config/family-recipes-600/siliconflow.key"
+  template: "config/keys.example.json"
+
+# 门禁
+gates:
+  cheap_first: true                  # 先跑便携／形态等廉价门
+  verify_per_book: true              # 每册必须过 G 系列
+  repo_check: true                   # 仓级 R 系列（R 系列是**仓级**，不属于技能本体）
