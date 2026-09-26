@@ -8,9 +8,10 @@
 
 | 脚本 | 阶段 | 作用 | 判据 |
 |---|---|---|---|
-| `s0c_series_check.py` | S0 | **配置校验**：必填字段 · id 文法 · 册码唯一 · 源根不嵌在产物根内 · 占位符已替换 · 源件实测 · 无内联密钥 | 退出码 0／2；反控件 `examples/bad-*.yml` 三条各自变红 |
+| `s0c_series_check.py` | S0 | **配置校验**：必填字段 · id 文法 · 册码唯一 · 源根不嵌在产物根内 · 占位符已替换（★ **只在值位置**：注释与正则命名组都不算，缺口 G-01）· 源件实测 · 无内联密钥 | 退出码 0／2；反控件 `examples/bad-*.yml` 三条各自变红 ＋ `examples/toy-series/series.yml` **9/9** |
+| `_paths.py` | — | ★ **路径单一来源**：`<pages_root>/<册码>/_pages/` 由**一个函数**解出，S1 写、S2 读都走它（缺口 G-02 的根因就是「两处各解一次」） | 反控：`s1 --plan` 报的页目录根 ＋ `/<册码>/_pages` 必须与 `s2` 解析的**逐字相同** |
 | `s1_transcribe.py` | S1 | **逐页转写**：`--plan`（⛔ 零请求，列待转写页/模型/提示词/预估 token）· `--run`（渲染 → 视觉模型 → `_pages/pNNNN.md`，追加 `_vision-log.tsv` 与 `_prompt-version.txt`） | ★ 一页一文件（已有即跳过）· 无键 ⇒ `SKIP`（⛔ 不是通过） |
-| `s0_book_shape.py` | S0 | **形态探测**：逐页实测页尺寸/位图/位深/文本层字符数 → `_book.json`；众数 ＋ **离群页点名** | `--check` 逐字段比对 |
+| `s0_book_shape.py` | S0 | **形态探测**：逐页实测页尺寸/位图/位深/文本层字符数 → `_book.json`；众数 ＋ **离群页点名**；★ **水印记名时剥掉**（缺口 G-03），只留 `basename_sha256` 指纹与剥除条数 | `--check` 逐字段比对 |
 | `s2_build_corpus.py` | S2 | **装配**：`_pages/` → `recipes/blocks/all/glossary` ＋ `_meta.json`（含**契约漂移**计数）；容忍五变体 | 编号连续 · 每条有制法 · `--check` 逐字节幂等；`--check` **只判幂等**，判语交给门 |
 | `_keys.py` | — | **密钥读取阶梯**：环境变量 → 仓外 key 文件（或 `<ENV>_FILE`）→ 仓内模板；★ ⛔ 不打印密钥，只报来源与长度 | 三档各自可测；无键时下游记 `SKIP` |
 | `s4_build_vectors.py` | S4 | **向量**：卡/块两套 ＋ 报告；★ **签名含模型＋id＋文本＋dtype** · **签名对模型/精度敏感**（可失败判据）· 单位归一化（点积＝余弦）· `--dry-run` 计划模式 | 五条判语（行数/id 唯一/单位范数/两项敏感）· 复跑 `api_calls = 0`（幂等） |
@@ -18,13 +19,16 @@
 | `s5_search.py` | S5 | **三层检索**：精确键 → bigram 词法 → **向量**（RRF 融合）；**双模式自测**（有向量／零嵌入降级）＋ 派生＋登记套件（`expect_none` 反命题 · `needs_vectors` 声明） | **三态**：0 全过 · 2 有 FAIL · **3 有不可判（SKIP）** —— `.npy` 在盘只证明 S4 跑过，⛔ 不证明这一次走到了向量层 |
 | `s5b_rerank_ab.py` | S5 | **重排 A/B**：逐条「关→开」rank ＋ **变坏条数（判据：应 0）** ＋ **失败回退反控**（不存在的模型名 ⇒ `reranked=False` 且结果非空） | 变坏 0 · 回退 OK |
 | `s5c_fallback.py` | S5 | **关键词分层灾备** ＋ 与 RAG 的**同口径召回对照**（三模式）；`--zero-network-selftest` ＝ 禁网反控 | ★ 判据**只有一条**：禁网后灾备侧仍出读数 |
-| `privacy_audit.py` | — | **隐私逐件复审**：形状规则 ＋ **本机禁止串表**（逐行字面 · git 忽略）⇒ `PRIVACY-AUDIT.tsv`（⛔ 只记路径与标签、**不记字面**） | 逐件 PASS/FAIL；器自身与禁止表**显式豁免并报出** |
+| `privacy_audit.py` | — | **隐私逐件复审**：形状规则 ＋ **本机禁止串表**（逐行字面 · git 忽略）⇒ `PRIVACY-AUDIT.tsv`（⛔ 只记路径与标签、**不记字面**）。★ 表名按**候选表**找（`privacy-forbidden.local.txt` ／ `config/forbidden-fragments.local.txt` …）；★ 遍历**在重解析点处剪枝并打印**（⛔ 不跟随仓内 junction）；★ `--tsv` 指向禁止表／声明表 ⇒ **拒绝写入** | 逐件 PASS/FAIL；器自身·禁止表·声明表**显式豁免并报出**；**一张表都没有 ⇒ `[SKIP]` ＋ exit 3**（⛔ 不是绿色的 PASS）；反控见 `examples/toy-series/control_privacy.py` |
 | `pack_release.py` | S7 | **发布打包**：分层固实 `tar.xz` ＋ 非固实外层 zip ＋ 包内五件文档；★ **隐私门在打包前跑**（命中即拒）· **三条回程判据**（只解文档／逐层 sha256／逐件 sha256） | `--scan-only` 只跑隐私门；坏包**不抛异常**、如实出读数 |
 | `pack_control.py` | S7 | **打包器反控**：删文档成员／改层字节／层内少一件 ⇒ 三条判据各自能红 | `PASS（三条判据各自能红）` |
-| `verify_gates.py` | S6 | **门禁骨架**：G0 幂等 · G1 形态 · G2 编号/制法 · G5 便携 · G9 自测 · Z 判决回写 | 逐册 VERDICT ＋ 读数；反控见 `examples/toy-series/control_gates.py` |
+| `verify_gates.py` | S6 | **门禁骨架**：G0 幂等 · G1 形态 · G2 编号/制法 · G5 便携（★ 判据**来自配置**：绝对路径 ＋ `config/forbidden-strings.txt` ＋ `watermark_strip`；表不在 ⇒ **SKIP**，缺口 G-03/G-04）· G9 自测 · Z 判决回写。★ **逐门统一三态**（`classify(rc)`：0／3／其它 ⇒ ok／skip／fail） | 逐册 VERDICT ＋ 读数；反控见 `examples/toy-series/control_gates.py`（**十次植入**） |
 
 ★ **能跑的闭环（离线）**：`s0_book_shape → s2_build_corpus → s5_search --self-test → verify_gates`
-（玩具系列实测：2 册 · 5 记录 · 29 块 · 自测 10/10 · 门全绿 · **三次反控各自变红**）。
+（玩具系列实测：2 册 · 6 记录 · 32 块 · 自测 10/10 · 门全绿 · **三次反控各自变红**）。
+★ 本轮（G-02 回填后）夹具已挪到**真实布局** `<pages_root>/<册码>/_pages/` —— 旧布局 `pages-fixture/<册码>/`
+**绕过**了 S1 的写法，使 s1 与 s2 从未真正首尾相接跑过一次，这正是 G-02 能活到 P3 才被发现的原因。
+⚠ 上一版 README 记的「5 记录 · 29 块」在**当前夹具**上复现不出来（夹具内容未变，故应是更早一版的陈旧读数）；此处按本轮实测值改，⛔ 不是本轮改动造成的差异。
 
 ## 编写约定（迁入时照此办理）
 

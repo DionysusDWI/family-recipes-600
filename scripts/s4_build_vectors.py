@@ -83,12 +83,19 @@ def main():
     model = (cfg.get("retrieval") or {}).get("embed_model", "Qwen/Qwen3-VL-Embedding-8B")
     key, src = load_key(cfg.get("keys"), base)
     print("== S4 向量（%s）==\n   模型 %s ｜ dtype %s\n   密钥来源 %s" % (s["id"], model, DTYPE, src))
-    if not key:
+    # ★★ 缺口 **G-16**：`--check` 的判据（模型名 · 两个签名 · 两个 `.npy` 是否存在）
+    #    **全部离线** —— 它一个网络请求都不发（下面 `if a.check:` 分支直接 `continue`）。
+    #    ⛔ 旧版在第 86 行就按「无键」整个 `return 3`，于是**没有嵌入模型密钥的机器上，
+    #    向量层的全部离线判据永远得不到检查**，门只能记 SKIP，而篡改过的
+    #    `vectors_report.json`（模型名／签名）**检测不到** —— 实测：反控 G 因此是**空控制**。
+    #    ⇒ 只有**真去算向量**的那条路才需要键。
+    if not a.check and not key:
         print("  [SKIP] 无键 ⇒ ⛔ 本阶段不可判（**不是通过**）")
         return 3
 
     books = [b for b in s["books"] if not a.book or b["code"] == a.book]
     bad = 0
+    skipped = 0
     for b in books:
         kdir = out / "kb" / b["code"]
         recs = [json.loads(l) for l in
@@ -106,13 +113,38 @@ def main():
         hits = int(old.get("sig_card") == sig_c and old.get("sig_text") == sig_t)
         calls = 0
         if a.check:
-            ok = (old.get("model") == model and old.get("dtype") == DTYPE
-                  and old.get("sig_card") == sig_c and old.get("sig_text") == sig_t
-                  and (kdir / "corpus" / "vectors_card.npy").exists()
-                  and (kdir / "corpus" / "vectors_text.npy").exists())
-            print("  [%s] %-6s --check：模型/签名/产物 %s"
-                  % ("PASS" if ok else "FAIL", b["code"], "一致" if ok else "**不一致**（需重跑 S4）"))
-            bad += 0 if ok else 1
+            # ★★ 缺口 **G-24**：签名不符与产物缺失是**两件不同的事**，⛔ 不可合成一个 FAIL。
+            #    ① 签名不符 ＝ 语料/模型/精度变了，**盘上的向量相对当前语料已失效** ⇒
+            #       **需重算**，是「没跑到」那一态（exit 3）。⛔ 报 FAIL 会把真因
+            #       （语料变了、向量没跟着重算）说成「向量坏了」—— 实测玩具块数 21→18 时
+            #       门报的就是 `FAIL G4`，而 `vectors_report.json` 本身完全自洽。
+            #    ② 签名**一致**却缺 `.npy` ＝ 报告与盘不符 ⇒ 那是与语料无关的**真失败**。
+            sig_ok = (old.get("model") == model and old.get("dtype") == DTYPE
+                      and old.get("sig_card") == sig_c and old.get("sig_text") == sig_t)
+            art_ok = ((kdir / "corpus" / "vectors_card.npy").exists()
+                      and (kdir / "corpus" / "vectors_text.npy").exists())
+            if not sig_ok:
+                why = []
+                if old.get("model") != model:
+                    why.append("模型 %r≠%r" % (old.get("model"), model))
+                if old.get("dtype") != DTYPE:
+                    why.append("dtype %r≠%r" % (old.get("dtype"), DTYPE))
+                if old.get("sig_card") != sig_c:
+                    why.append("卡签名不符")
+                if old.get("sig_text") != sig_t:
+                    why.append("块签名不符")
+                print("  [SKIP] %-6s --check：★ 签名不符（%s）⇒ ⛔ 需重算 S4（**不是通过**）"
+                      % (b["code"], " · ".join(why) or "报告缺失"))
+                skipped += 1
+            elif not art_ok:
+                miss = [n for n in ("vectors_card.npy", "vectors_text.npy")
+                        if not (kdir / "corpus" / n).exists()]
+                print("  [FAIL] %-6s --check：签名一致但**产物缺失**（%s）⇒ 报告与盘不符"
+                      % (b["code"], " · ".join(miss)))
+                bad += 1
+            else:
+                print("  [PASS] %-6s --check：模型/签名/产物 一致（★ 离线判据，⛔ 不重算向量）"
+                      % b["code"])
             continue
         if a.dry_run:
             print("  [PASS] %-6s 计划：卡 %d 条 · 块 %d 条 · 签名 %s / %s（当前 %s）"
@@ -160,8 +192,13 @@ def main():
         rep_p.write_text(json.dumps(report, ensure_ascii=False, indent=1) + "\n",
                          encoding="utf-8", newline="\n")
         bad += 0 if ok else 1
-    print("\n  结论：%s" % ("全部通过" if not bad else "%d 册有问题" % bad))
-    return 0 if not bad else 2
+    print("\n  结论：%s" % ("全部通过" if not bad and not skipped
+                          else ("%d 册有问题" % bad if bad else "")
+                          + ("%s%d 册需重算（签名不符）" % (" · " if bad else "", skipped)
+                             if skipped else "")))
+    if bad:
+        return 2
+    return 3 if skipped else 0
 
 
 if __name__ == "__main__":

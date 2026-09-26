@@ -11,7 +11,8 @@
   ② `id` 符合 kebab 文法 `^[a-z0-9]+(-[a-z0-9]+)*$`（会进向量签名与仓名）
   ③ 册码**唯一**且符合 `^[A-Za-z][A-Za-z0-9-]{1,7}$`（★ 登记即固化，⛔ 不排序得到）
   ④ ★ **`source_root` 不得落在 `out_root` 之内**（否则源件会被当成产物打包 —— 便携门必红）
-  ⑤ ★ **模板占位符 `<…>` 必须已被替换**（未替换的一律报出：模板能跑通才是怪事）
+  ⑤ ★ **模板占位符 `<…>` 必须已被替换** —— 但只在**值位置**判：正则**命名组** `(?P<name>…)`
+     与**注释区**的举例都**不是**占位符（缺口 G-01：旧判据对整篇原文 findall，会**假红**）
   ⑥ 每册 `basename` 非空；若源件存在，**实测**字节数与页数并报出（⛔ 不读配置里的自称值）
   ⑦ 密钥：配置里⛔ 不得出现疑似真钥的字符串（只允许环境变量名与仓外路径）
 
@@ -35,9 +36,34 @@ if hasattr(sys.stdout, "reconfigure"):
 ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 CODE_RE = re.compile(r"^[A-Za-z][A-Za-z0-9-]{1,7}$")
 PLACEHOLDER_RE = re.compile(r"<[^<>]{1,60}>")
+# ★ 正则**命名组** `(?P<name>…)` 不是占位符 —— 引擎**要求**它（见 s2_build_corpus.py 的 glossary_pattern）
+RE_GROUP_RE = re.compile(r"\(\?P<[^<>]{1,60}>")
 KEYLIKE_RE = re.compile(r"\b(sk-[A-Za-z0-9]{16,}|[A-Za-z0-9_-]{32,})\b")
 
 results = []
+
+
+def placeholder_hits(raw: str):
+    """★ 只在**值位置**找占位符（缺口 G-01 的修法）。
+
+    旧判据 `PLACEHOLDER_RE.findall(整篇原文)` 分不清三类尖括号：
+      ① 模板占位符（**该报**）—— 例如 `title: "<标题>"`
+      ② 正则命名组 `(?P<marker>…)`（⛔ **不该报**）—— 引擎要它，⛔ 不是「没替换」
+      ③ 注释里的举例 `# 产物落 ./kb/<册码>/`（⛔ **不该报**）—— 文档必须能写形状
+
+    ★ 决定性证据：修前**技能自己的回归夹具**跑不过自己的门 ——
+      `s0c_series_check.py --series examples/toy-series/series.yml` ⇒ 8/9 · exit 2。
+      （P1 记为 9/9，只是因为它的冒烟配置 `example-series.yml` **没有注释区** ⇒ 夹具从未被那道门跑过。）
+
+    ⚠ 已知边界：`#` 一律按**行内注释起点**理解 ⇒ 若某个**带引号的值**里含 `#` 且其后跟 `<…>`，
+      会漏报。★ 这是**故意取窄**：漏报一条，好过让每份真实配置永久假红。
+    """
+    hits = []
+    for ln in raw.splitlines():
+        code = ln.split("#", 1)[0]                 # ① 注释区不算值位置
+        code = RE_GROUP_RE.sub("", code)           # ② 命名组不是占位符
+        hits.extend(PLACEHOLDER_RE.findall(code))
+    return sorted(set(hits))
 
 
 def check(name, ok, detail):
@@ -102,8 +128,8 @@ def main():
           "out=%s · src=%s ⇒ %s" % (out_root.name, src_root.name,
                                     "src 在 out 之内（会把源件打包）" if inside else "互不包含"))
 
-    # ⑤ 模板占位符
-    ph = sorted(set(PLACEHOLDER_RE.findall(raw)))
+    # ⑤ 模板占位符（★ 只在值位置；注释与正则命名组都不算）
+    ph = placeholder_hits(raw)
     check("placeholders-replaced", not ph, "未替换：%s" % (ph[:6] or "无"))
 
     # ⑥ 每册 basename ＋ 实测（存在才测）

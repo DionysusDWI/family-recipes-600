@@ -7,6 +7,8 @@
   ② 众数形态由**实测频率**得出；**离群页逐个点名**并写出差在哪
   ③ `--check`：重新探测并与在盘 `_book.json` 的 `shape` 段**逐字段比对**
   ④ 源件路径⛔ 不落盘（便携门会在 S6 复核整册产物）
+  ⑤ ★ **水印在记名时剥掉**（缺口 G-03）：`series.yml` 的 `watermark_strip:` 是要剥的串；
+     产物里⛔ 不出现水印本身，也⛔ 不出现原名的字面 —— 只留 sha256 指纹供复核
 
 用法：
     python s0_book_shape.py --series <series.yml> [--book CODE] [--check]
@@ -16,12 +18,33 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sys
 from collections import Counter
 from pathlib import Path
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+
+def clean_basename(name, strip):
+    """★ **记名时剥掉水印**（缺口 G-03）：来源水印⛔ 不得进任何产物。
+
+    `series.yml` 顶层的 `watermark_strip:` 给出要剥的串（如 `Z-Library`）。
+    剥完顺带清掉留下的**空括号**与孤零空白，免得产物里出现 `… ().pdf` 这种机器痕迹。
+
+    ★ 为什么⛔ 不把原名另存一个字段：那等于**把水印原样写进产物**，正是本缺口要修的事。
+      需要复核「这条产物对应盘上哪个文件」时，用 `basename_sha256` 比对即可。
+    """
+    out = str(name)
+    for w in strip or []:
+        w = str(w).strip()
+        if w:
+            out = out.replace(w, "")
+    out = re.sub(r"[\(\（\[\【]\s*[\)\）\]\】]", "", out)     # 剥完剩下的空括号
+    out = re.sub(r"\s{2,}", " ", out)                        # 连续空白
+    out = re.sub(r"\s+([.\)\]])", r"\1", out)                # 紧邻标点的孤零空格
+    return out.strip()
 
 
 def load_series(p):
@@ -102,11 +125,17 @@ def main():
             continue
         shape = probe(src)
         dest = s["_out"] / "kb" / b["code"] / "_book.json"
+        # ★ 水印记名时剥掉（缺口 G-03）；⛔ 只记剥了几条，⛔ 不记被剥掉的字面
+        wm = [str(x).strip() for x in (cfg.get("watermark_strip") or []) if str(x).strip()]
+        bn = clean_basename(src.name, wm)
+        n_wm = sum(1 for w in wm if w in src.name)
         rec = {"book": {"code": b["code"], "title": b.get("title", ""),
                         "title_source": {"kind": b.get("title_source", "unstated"),
                                          "note": "★ 册名应取自印本封面，⛔ 不从文件名猜"}},
-               "source": {"basename": src.name, "bytes": src.stat().st_size,
-                          "pages": len(shape["pages"])},
+               "source": {"basename": bn, "bytes": src.stat().st_size,
+                          "pages": len(shape["pages"]),
+                          "basename_sha256": hashlib.sha256(src.name.encode("utf-8")).hexdigest(),
+                          "watermark_stripped_count": n_wm},
                "shape": shape}
         if a.check:
             if not dest.exists():
@@ -122,10 +151,10 @@ def main():
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(json.dumps(rec, ensure_ascii=False, indent=1) + "\n",
                         encoding="utf-8", newline="\n")
-        print("  [PASS] %-6s %d 页 · %d B · 众数 %s pt / %s px · 文本层 %d 字符 · 离群 %d 页 ⇒ %s"
+        print("  [PASS] %-6s %d 页 · %d B · 众数 %s pt / %s px · 文本层 %d 字符 · 离群 %d 页 · 水印剥 %d 条 ⇒ %s"
               % (b["code"], len(shape["pages"]), src.stat().st_size,
                  shape["modal"]["page_size_pt"], shape["modal"]["native_px"],
-                 shape["text_layer_chars_total"], len(shape["outliers"]),
+                 shape["text_layer_chars_total"], len(shape["outliers"]), n_wm,
                  dest.relative_to(s["_base"])))
     print("\n  结论：%s" % ("全部通过" if not bad else "%d 册有问题" % bad))
     return 0 if not bad else 2

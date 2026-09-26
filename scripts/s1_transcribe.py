@@ -27,6 +27,7 @@ if hasattr(sys.stdout, "reconfigure"):
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from _keys import load_key                                       # noqa: E402
+from _paths import pages_dir as resolve_pages_dir, pages_root as resolve_pages_root  # noqa: E402
 
 URL = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
 DEFAULT_MODEL = "qwen3.8-omni-flash"
@@ -120,7 +121,8 @@ def main():
     key, src_note = load_key(kcfg, base)
 
     books = [b for b in s["books"] if not a.book or b["code"] == a.book]
-    print("== S1 逐页转写（%s）==\n   输出根 %s\n   密钥来源 %s" % (s["id"], out / "kb", src_note))
+    print("== S1 逐页转写（%s）==\n   输出根 %s\n   页目录根 %s   ★ 与 S2 同解（scripts/_paths.py）\n   密钥来源 %s"
+          % (s["id"], out, resolve_pages_root(base, s), src_note))
 
     if a.plan:
         total = 0
@@ -129,7 +131,7 @@ def main():
             if not pdf.exists():
                 print("  [SKIP] %-6s 源件不存在：%s" % (b["code"], b["basename"]))
                 continue
-            total += len(plan(b["code"], pdf, out / "kb" / b["code"] / "_pages", dpi, model))
+            total += len(plan(b["code"], pdf, resolve_pages_dir(base, s, b["code"]), dpi, model))
         print("\n  计划完成：待转写 %d 页 · ⛔ 本次未发任何请求" % total)
         return 0
 
@@ -143,15 +145,16 @@ def main():
         pdf = src / b["basename"]
         if not pdf.exists():
             continue
-        pages_dir = out / "kb" / b["code"] / "_pages"
-        pages_dir.mkdir(parents=True, exist_ok=True)
-        log = pages_dir / "_vision-log.tsv"
+        # ★ 落点由 scripts/_paths.py **单点决定**（缺口 G-02：⛔ 不要在这里手拼路径）
+        pdir = resolve_pages_dir(base, s, b["code"])
+        pdir.mkdir(parents=True, exist_ok=True)
+        log = pdir / "_vision-log.tsv"
         if not log.exists():
             log.write_text("page\tseconds\ttokens\tstatus\n", encoding="utf-8", newline="\n")
-        (pages_dir / "_prompt-version.txt").open("a", encoding="utf-8", newline="\n").write(
+        (pdir / "_prompt-version.txt").open("a", encoding="utf-8", newline="\n").write(
             "%s\t%s\ttodo=%d\n" % (PROMPT_VERSION, time.strftime("%Y-%m-%d %H:%M:%S"),
-                                   len(plan(b["code"], pdf, pages_dir, dpi, model))))
-        todo = [i for i in range(_page_count(pdf)) if not (pages_dir / ("p%04d.md" % i)).exists()]
+                                   len(plan(b["code"], pdf, pdir, dpi, model))))
+        todo = [i for i in range(_page_count(pdf)) if not (pdir / ("p%04d.md" % i)).exists()]
         tmp = Path(tempfile.mkdtemp(prefix="s1-"))
         try:
             for i in todo:
@@ -161,7 +164,7 @@ def main():
                 png = render(pdf, i, dpi, tmp / ("p%04d.png" % i))
                 try:
                     txt, usage = transcribe(png, model, key)
-                    (pages_dir / ("p%04d.md" % i)).write_text(txt.strip() + "\n",
+                    (pdir / ("p%04d.md" % i)).write_text(txt.strip() + "\n",
                                                               encoding="utf-8", newline="\n")
                     st = "ok"
                 except Exception as e:                           # noqa: BLE001
