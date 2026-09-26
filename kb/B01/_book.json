@@ -8,9 +8,11 @@
   }
  },
  "source": {
-  "basename": "巧做家庭菜600例 (朴丰田口述； 穆里, 金岩整理) (Z-Library).pdf",
+  "basename": "巧做家庭菜600例 (朴丰田口述； 穆里, 金岩整理).pdf",
   "bytes": 49459704,
-  "pages": 289
+  "pages": 289,
+  "basename_sha256": "1b90d74965a0d4383388f8022192114f65d070b27d8bc2ffaca412ff922875c3",
+  "watermark_stripped_count": 1
  },
  "shape": {
   "method": "逐页 page.rect ＋ get_images(full=True) → extract_image（零渲染、零模型、零网络）",
