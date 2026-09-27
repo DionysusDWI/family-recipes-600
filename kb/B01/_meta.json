@@ -2,11 +2,215 @@
  "book": "B01",
  "title": "巧做家庭菜600例",
  "counts": {
-  "recipes": 568,
+  "recipes": 589,
   "blocks": 3655,
   "glossary": 0,
   "starts_body": 569,
   "recipes_from_variant1": 0,
+  "recipes_from_promoted_section": 21,
+  "promoted_section_starts": [
+   {
+    "page": 17,
+    "line": 15,
+    "raw": "四",
+    "number": 4,
+    "name": "火腿龙须",
+    "scope_id": "C02",
+    "from": "（四）火腿龙须"
+   },
+   {
+    "page": 17,
+    "line": 28,
+    "raw": "五",
+    "number": 5,
+    "name": "鸡丝拌三丝",
+    "scope_id": "C02",
+    "from": "（五）鸡丝拌三丝"
+   },
+   {
+    "page": 27,
+    "line": 9,
+    "raw": "二",
+    "number": 2,
+    "name": "珍珠燕菜",
+    "scope_id": "C03",
+    "from": "（二）珍珠燕菜"
+   },
+   {
+    "page": 27,
+    "line": 25,
+    "raw": "三",
+    "number": 3,
+    "name": "甜燕菜",
+    "scope_id": "C03",
+    "from": "（三）甜燕菜"
+   },
+   {
+    "page": 34,
+    "line": 8,
+    "raw": "六",
+    "number": 6,
+    "name": "鱼翅烧白菜",
+    "scope_id": "C04",
+    "from": "（六）鱼翅烧白菜"
+   },
+   {
+    "page": 34,
+    "line": 26,
+    "raw": "七",
+    "number": 7,
+    "name": "翅子烧四丝",
+    "scope_id": "C04",
+    "from": "（七）翅子烧四丝"
+   },
+   {
+    "page": 37,
+    "line": 5,
+    "raw": "二",
+    "number": 2,
+    "name": "鸽 蛋 银 耳",
+    "scope_id": "C05",
+    "from": "（二）鸽 蛋 银 耳"
+   },
+   {
+    "page": 37,
+    "line": 16,
+    "raw": "三",
+    "number": 3,
+    "name": "云 片 银 耳",
+    "scope_id": "C05",
+    "from": "（三）云 片 银 耳"
+   },
+   {
+    "page": 42,
+    "line": 1,
+    "raw": "六",
+    "number": 6,
+    "name": "蝴 蝶 海 参",
+    "scope_id": "C06",
+    "from": "(六)蝴 蝶 海 参"
+   },
+   {
+    "page": 42,
+    "line": 22,
+    "raw": "七",
+    "number": 7,
+    "name": "虾 蘑 海 参",
+    "scope_id": "C06",
+    "from": "(七)虾 蘑 海 参"
+   },
+   {
+    "page": 85,
+    "line": 6,
+    "raw": "四",
+    "number": 4,
+    "name": "鱼肚烧猴头",
+    "scope_id": "C14",
+    "from": "（四）鱼肚烧猴头"
+   },
+   {
+    "page": 85,
+    "line": 14,
+    "raw": "一",
+    "number": 1,
+    "name": "酿口蘑",
+    "scope_id": "C15",
+    "from": "（一）酿口蘑"
+   },
+   {
+    "page": 96,
+    "line": 6,
+    "raw": "十八",
+    "number": 18,
+    "name": "虎肉烧萝卜",
+    "scope_id": "C16",
+    "from": "（十八）虎肉烧萝卜"
+   },
+   {
+    "page": 96,
+    "line": 13,
+    "raw": "十九",
+    "number": 19,
+    "name": "雪里蕻笋丝肉",
+    "scope_id": "C16",
+    "from": "（十九）雪里蕻笋丝肉"
+   },
+   {
+    "page": 99,
+    "line": 6,
+    "raw": "二十四",
+    "number": 24,
+    "name": "甜辣炒四丁",
+    "scope_id": "C16",
+    "from": "（二十四）甜辣炒四丁"
+   },
+   {
+    "page": 99,
+    "line": 13,
+    "raw": "二十五",
+    "number": 25,
+    "name": "加 浆 肉 片",
+    "scope_id": "C16",
+    "from": "（二十五）加 浆 肉 片"
+   },
+   {
+    "page": 182,
+    "line": 6,
+    "raw": "五",
+    "number": 5,
+    "name": "东 坡 肉",
+    "scope_id": "C20",
+    "from": "（五）东 坡 肉"
+   },
+   {
+    "page": 182,
+    "line": 22,
+    "raw": "六",
+    "number": 6,
+    "name": "酿 干 豆 腐",
+    "scope_id": "C20",
+    "from": "（六）酿 干 豆 腐"
+   },
+   {
+    "page": 189,
+    "line": 6,
+    "raw": "八",
+    "number": 8,
+    "name": "熘 萝 卜 圆",
+    "scope_id": "C21",
+    "from": "（八）熘 萝 卜 圆"
+   },
+   {
+    "page": 189,
+    "line": 13,
+    "raw": "九",
+    "number": 9,
+    "name": "松花“肉片”",
+    "scope_id": "C21",
+    "from": "（九）松花“肉片”"
+   },
+   {
+    "page": 285,
+    "line": 27,
+    "raw": "二",
+    "number": 2,
+    "name": "面筋的制做",
+    "scope_id": "C29-S01",
+    "from": "（二）面筋的制做"
+   }
+  ],
+  "dup_suffixed": [
+   {
+    "scope": "C23",
+    "number": 9,
+    "occurrence": 2,
+    "page": 207,
+    "from": "B01-C23-R009",
+    "recipe_id": "B01-C23-R009b",
+    "number_raw": "九"
+   }
+  ],
+  "ids_unique_corpus": true,
   "starts_accounted": true,
   "rejected_starts": [
    {
@@ -170,6 +374,8 @@
     1,
     2,
     3,
+    4,
+    5,
     6,
     7,
     8,
@@ -192,6 +398,8 @@
    ],
    "C03 三、燕菜类": [
     1,
+    2,
+    3,
     4,
     5,
     6,
@@ -206,11 +414,15 @@
     3,
     4,
     5,
+    6,
+    7,
     8,
     9
    ],
    "C05 五、银耳类": [
     1,
+    2,
+    3,
     4,
     5
    ],
@@ -219,7 +431,9 @@
     2,
     3,
     4,
-    5
+    5,
+    6,
+    7
    ],
    "C07 七、鲍鱼类": [
     1,
@@ -305,9 +519,11 @@
    "C14 十四、猴头蘑类": [
     1,
     2,
-    3
+    3,
+    4
    ],
    "C15 十五、口蘑类": [
+    1,
     2,
     3,
     4
@@ -330,10 +546,14 @@
     15,
     16,
     17,
+    18,
+    19,
     20,
     21,
     22,
     23,
+    24,
+    25,
     26,
     27,
     28,
@@ -530,6 +750,8 @@
     2,
     3,
     4,
+    5,
+    6,
     7,
     8,
     9,
@@ -548,6 +770,8 @@
     5,
     6,
     7,
+    8,
+    9,
     10,
     11,
     12,
@@ -813,36 +1037,12 @@
    ],
    "C29 十二、其他素菜制做法 / （一）软川的制做": [
     1,
+    2,
     3,
     4
    ]
   },
   "numbers_missing_within_chapter": {
-   "C02 二、凉菜类": [
-    4,
-    5
-   ],
-   "C03 三、燕菜类": [
-    2,
-    3
-   ],
-   "C04 四、鱼翅类": [
-    6,
-    7
-   ],
-   "C05 五、银耳类": [
-    2,
-    3
-   ],
-   "C15 十五、口蘑类": [
-    1
-   ],
-   "C16 十六、肉类": [
-    18,
-    19,
-    24,
-    25
-   ],
    "C17 十七、杂类 / （七）其他类": [
     35,
     36,
@@ -855,14 +1055,6 @@
    "C18 十八、粗菜类 / （一）白菜类": [
     3
    ],
-   "C20 二、蒸菜类": [
-    5,
-    6
-   ],
-   "C21 三、熘菜类": [
-    8,
-    9
-   ],
    "C23 五、烧菜类": [
     8
    ],
@@ -872,9 +1064,6 @@
     32,
     33,
     34
-   ],
-   "C29 十二、其他素菜制做法 / （一）软川的制做": [
-    2
    ]
   },
   "recipes_without_method": [],
@@ -1011,7 +1200,211 @@
    ],
    "rejected_reasons": {
     "unnumbered": 1
-   }
+   },
+   "promoted_section_starts": [
+    {
+     "page": 17,
+     "line": 15,
+     "raw": "四",
+     "number": 4,
+     "name": "火腿龙须",
+     "scope_id": "C02",
+     "from": "（四）火腿龙须"
+    },
+    {
+     "page": 17,
+     "line": 28,
+     "raw": "五",
+     "number": 5,
+     "name": "鸡丝拌三丝",
+     "scope_id": "C02",
+     "from": "（五）鸡丝拌三丝"
+    },
+    {
+     "page": 27,
+     "line": 9,
+     "raw": "二",
+     "number": 2,
+     "name": "珍珠燕菜",
+     "scope_id": "C03",
+     "from": "（二）珍珠燕菜"
+    },
+    {
+     "page": 27,
+     "line": 25,
+     "raw": "三",
+     "number": 3,
+     "name": "甜燕菜",
+     "scope_id": "C03",
+     "from": "（三）甜燕菜"
+    },
+    {
+     "page": 34,
+     "line": 8,
+     "raw": "六",
+     "number": 6,
+     "name": "鱼翅烧白菜",
+     "scope_id": "C04",
+     "from": "（六）鱼翅烧白菜"
+    },
+    {
+     "page": 34,
+     "line": 26,
+     "raw": "七",
+     "number": 7,
+     "name": "翅子烧四丝",
+     "scope_id": "C04",
+     "from": "（七）翅子烧四丝"
+    },
+    {
+     "page": 37,
+     "line": 5,
+     "raw": "二",
+     "number": 2,
+     "name": "鸽 蛋 银 耳",
+     "scope_id": "C05",
+     "from": "（二）鸽 蛋 银 耳"
+    },
+    {
+     "page": 37,
+     "line": 16,
+     "raw": "三",
+     "number": 3,
+     "name": "云 片 银 耳",
+     "scope_id": "C05",
+     "from": "（三）云 片 银 耳"
+    },
+    {
+     "page": 42,
+     "line": 1,
+     "raw": "六",
+     "number": 6,
+     "name": "蝴 蝶 海 参",
+     "scope_id": "C06",
+     "from": "(六)蝴 蝶 海 参"
+    },
+    {
+     "page": 42,
+     "line": 22,
+     "raw": "七",
+     "number": 7,
+     "name": "虾 蘑 海 参",
+     "scope_id": "C06",
+     "from": "(七)虾 蘑 海 参"
+    },
+    {
+     "page": 85,
+     "line": 6,
+     "raw": "四",
+     "number": 4,
+     "name": "鱼肚烧猴头",
+     "scope_id": "C14",
+     "from": "（四）鱼肚烧猴头"
+    },
+    {
+     "page": 85,
+     "line": 14,
+     "raw": "一",
+     "number": 1,
+     "name": "酿口蘑",
+     "scope_id": "C15",
+     "from": "（一）酿口蘑"
+    },
+    {
+     "page": 96,
+     "line": 6,
+     "raw": "十八",
+     "number": 18,
+     "name": "虎肉烧萝卜",
+     "scope_id": "C16",
+     "from": "（十八）虎肉烧萝卜"
+    },
+    {
+     "page": 96,
+     "line": 13,
+     "raw": "十九",
+     "number": 19,
+     "name": "雪里蕻笋丝肉",
+     "scope_id": "C16",
+     "from": "（十九）雪里蕻笋丝肉"
+    },
+    {
+     "page": 99,
+     "line": 6,
+     "raw": "二十四",
+     "number": 24,
+     "name": "甜辣炒四丁",
+     "scope_id": "C16",
+     "from": "（二十四）甜辣炒四丁"
+    },
+    {
+     "page": 99,
+     "line": 13,
+     "raw": "二十五",
+     "number": 25,
+     "name": "加 浆 肉 片",
+     "scope_id": "C16",
+     "from": "（二十五）加 浆 肉 片"
+    },
+    {
+     "page": 182,
+     "line": 6,
+     "raw": "五",
+     "number": 5,
+     "name": "东 坡 肉",
+     "scope_id": "C20",
+     "from": "（五）东 坡 肉"
+    },
+    {
+     "page": 182,
+     "line": 22,
+     "raw": "六",
+     "number": 6,
+     "name": "酿 干 豆 腐",
+     "scope_id": "C20",
+     "from": "（六）酿 干 豆 腐"
+    },
+    {
+     "page": 189,
+     "line": 6,
+     "raw": "八",
+     "number": 8,
+     "name": "熘 萝 卜 圆",
+     "scope_id": "C21",
+     "from": "（八）熘 萝 卜 圆"
+    },
+    {
+     "page": 189,
+     "line": 13,
+     "raw": "九",
+     "number": 9,
+     "name": "松花“肉片”",
+     "scope_id": "C21",
+     "from": "（九）松花“肉片”"
+    },
+    {
+     "page": 285,
+     "line": 27,
+     "raw": "二",
+     "number": 2,
+     "name": "面筋的制做",
+     "scope_id": "C29-S01",
+     "from": "（二）面筋的制做"
+    }
+   ],
+   "errata_note": "ERRATA.tsv ⇒ 受理 2 行 · 不受理 0 行",
+   "errata_rejected": [],
+   "dup_suffixed": [
+    {
+     "scope": "C23",
+     "number": 9,
+     "occurrence": 2,
+     "page": 207,
+     "from": "B01-C23-R009",
+     "recipe_id": "B01-C23-R009b",
+     "number_raw": "九"
+    }
+   ]
   }
  },
  "gates": {
@@ -1021,8 +1414,9 @@
   "no_numeric_only_step_block": true,
   "all_starts_accepted": false,
   "starts_accounted": true,
+  "ids_unique_corpus": true,
   "G3_index": {
-   "terms": 612,
+   "terms": 631,
    "families": 0,
    "ledger_rows_used": 0,
    "pairs": 0,
@@ -1051,31 +1445,6 @@
      ]
     ],
     "missing_effective": {
-     "C02 二、凉菜类": [
-      4,
-      5
-     ],
-     "C03 三、燕菜类": [
-      2,
-      3
-     ],
-     "C04 四、鱼翅类": [
-      6,
-      7
-     ],
-     "C05 五、银耳类": [
-      2,
-      3
-     ],
-     "C15 十五、口蘑类": [
-      1
-     ],
-     "C16 十六、肉类": [
-      18,
-      19,
-      24,
-      25
-     ],
      "C17 十七、杂类 / （七）其他类": [
       35,
       36,
@@ -1088,30 +1457,19 @@
      "C18 十八、粗菜类 / （一）白菜类": [
       3
      ],
-     "C20 二、蒸菜类": [
-      5,
-      6
-     ],
-     "C21 三、熘菜类": [
-      8,
-      9
-     ],
      "C24 七、油炸菜类": [
       30,
       31,
       32,
       33,
       34
-     ],
-     "C29 十二、其他素菜制做法 / （一）软川的制做": [
-      2
      ]
     },
     "numbering": "per_chapter",
     "without_method": [],
     "starts_body": 569,
     "recipes_from_variant1": 0,
-    "recipes": 568,
+    "recipes": 589,
     "accepted_all_starts": false,
     "rejected": {
      "unnumbered": 1
@@ -1126,47 +1484,24 @@
    "G4_vectors": {
     "check_exit": 0,
     "model": "Qwen/Qwen3-VL-Embedding-8B",
-    "api_calls_last": 133,
+    "api_calls_last": 134,
     "gates": {
      "rows_match": true,
-     "ids_unique": false,
+     "ids_unique": true,
      "unit_norm": true,
      "sig_sensitive_to_model": true,
      "sig_sensitive_to_dtype": true
     },
     "id_collision_attribution": {
-     "duplicate_ids": 1,
+     "duplicate_ids": 0,
      "assembly_side": 0,
-     "transcription_side": 1,
+     "transcription_side": 0,
      "criterion": "v2 页跨度内存在「结构 + 位置」都像边界却未被 chapter/subchapter 认出的 @@SECTION 行（其后紧跟 @@RECIPE_START）⇒ 装配侧；否则 ⇒ 转写侧",
-     "duplicate_id_list": [
-      {
-       "id": "B01-C23-R009",
-       "scope": "C23",
-       "numbers": [
-        9,
-        9
-       ]
-      }
-     ],
-     "examples": [
-      {
-       "id": "B01-C23-R009",
-       "side": "transcription",
-       "scope": "C23",
-       "chapter": "五、烧菜类",
-       "records": 2,
-       "numbers": [
-        9,
-        9
-       ]
-      }
-     ]
+     "duplicate_id_list": [],
+     "examples": []
     },
     "gates_bad_after_errata": [],
-    "errata_exempted": [
-     "ids_unique: 1 个撞号全部在册（B01-C23-R009）"
-    ],
+    "errata_exempted": [],
     "duplicates_uncovered": []
    },
    "G6_fallback_zero_network": {

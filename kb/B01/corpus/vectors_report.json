@@ -2,11 +2,11 @@
  "book": "B01",
  "model": "Qwen/Qwen3-VL-Embedding-8B",
  "dtype": "float16",
- "sig_card": "8eac20d0eae810b7_568_float16_vl-embed-8b",
- "sig_text": "ba835fe3202e4b83_3655_float16_vl-embed-8b",
- "cards": 568,
+ "sig_card": "797ce5a0b9ef90ac_589_float16_vl-embed-8b",
+ "sig_text": "9dc171a7b1072fbb_3655_float16_vl-embed-8b",
+ "cards": 589,
  "texts": 3655,
- "api_calls": 133,
+ "api_calls": 134,
  "sig_hit": false,
  "l2_card": [
   1.0,
@@ -16,11 +16,11 @@
   1.0,
   1.0
  ],
- "ids_unique_card": false,
+ "ids_unique_card": true,
  "ids_unique_text": true,
  "gates": {
   "rows_match": true,
-  "ids_unique": false,
+  "ids_unique": true,
   "unit_norm": true,
   "sig_sensitive_to_model": true,
   "sig_sensitive_to_dtype": true

@@ -22,12 +22,21 @@
   `arabic`（默认）· `chinese` · `mixed`。⛔ 绝不能让使用者「拼一个能 int 的正则」：
   正则只能**筛**，`int()` 才能**读**。本件把「筛」与「读」分开，并**同时保留 `number_raw`**（印本原样）。
 
+★★ 被标成 `@@SECTION` 的**食谱标题**（缺口 **G-34**）—— 升格为起点，判据见 §`_is_section_line` 处。
+  ⛔ 四个反向夹具（真节名／真章标题／真子类／已出现过的号）都必须**不**升格。
+
+★★ 印本**重号**的身份消歧（缺口 **G-36**）—— 只对仓根 `ERRATA.tsv` **具名点中**的那一组，
+  按**文档顺序**给第 2..n 条加后缀 `b`/`c`… ⇒ `recipe_id` 真唯一，检索按 id 回引不再串菜。
+  ★ 印本原号（`number` / `number_raw`）**逐字不改** —— 把重号改成别的号会同时消灭「重」与「缺」，
+    那是**抹平事实**。⛔ 未在册的撞号**照旧撞**（⛔ 不得变成「自动去重」）。
+
 用法：
     python s2_build_corpus.py --series <series.yml> [--book CODE] [--check] [--dry-run]
 """
 from __future__ import annotations
 
 import argparse
+import bisect
 import json
 import re
 import sys
@@ -39,6 +48,7 @@ if hasattr(sys.stdout, "reconfigure"):
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from _paths import pages_dir as resolve_pages_dir                # noqa: E402
+from _errata import load_errata, match_rows                      # noqa: E402
 
 SPACE = re.compile(r"\s+")
 
@@ -286,17 +296,25 @@ def assemble(book_code, pages_dir, contract, cfg_series):
     rejected = []                          # ★ G-28：被拒起点（具名）
     starts_body = [0]                      # ★ G-28：非目录页上的 `@@RECIPE_START` **行数**
     opens_variant1 = [0]                   # ★ G-28：变体①（整页无标记）开出的起点数（**无标记行**）
+    opens_promoted = [0]                   # ★ G-34：由 `@@SECTION` 升格而来的起点数（**无标记行**）
+    # ★★ G-36：**印本重号**的具名消歧 —— 表在**仓根**，由 `_errata.py` 单一来源解析。
+    errata, _errata_bad, _errata_note = load_errata(cfg_series.get("_base", "."))
+    dup_seen = {}                          # (作用域, 号) → 已出现次数（**文档顺序**）
+    seen_nums = {}                         # ★ G-34：作用域 → 已出现过的号集合
+    dup_suffixed = []                      # ★ 具名：哪一条被加了后缀
     drift = {"variant1_pages_no_marker": [], "variant2_inline_step": 0,
              "variant3_bare_step": 0, "variant4_bare_group": 0, "section_spellings": {},
              "variant5_inline_section": 0, "toc_pages": [], "toc_lines_skipped": 0,
-             "subchapters": [], "rejected_reasons": {}}
+             "subchapters": [], "rejected_reasons": {},
+             "promoted_section_starts": [], "errata_note": _errata_note,
+             "errata_rejected": _errata_bad, "dup_suffixed": dup_suffixed}
     step_seq = 0
     bid_seq = 0
     stats_splice = [0]                # ★ 拼接次数（★ 可证伪读数：跨页夹具上应 ≥1）
     marker_cont_page = set()          # 声明「承接上一页」的页
     nomark_pages = set()              # 整页无标记的页（变体①）
 
-    def open_recipe(raw, num, name):
+    def open_recipe(raw, num, name, page=None):
         nonlocal cur, sec, grp, step_seq, pending_step
         ordinal = len(recipes) + 1
         # ★ G-29：`recipe_id` 必须带上**编号作用域**，否则「子类内重起」会让不同菜撞同一个 id
@@ -304,16 +322,31 @@ def assemble(book_code, pages_dir, contract, cfg_series):
         #    撞号 id 已写进向量库的同一行空间 ⇒ 检索回引会命中错误的菜）。
         if C.numbering == "per_chapter":
             if scope[0] == "S":
-                rid = "%s-C%02d-S%02d-R%03d" % (book_code, scope[1], scope[2], num)
+                base_rid = "%s-C%02d-S%02d-R%03d" % (book_code, scope[1], scope[2], num)
             else:
-                rid = "%s-C%02d-R%03d" % (book_code, scope[1], num)
+                base_rid = "%s-C%02d-R%03d" % (book_code, scope[1], num)
         else:
-            rid = "%s-R%03d" % (book_code, num)
+            base_rid = "%s-R%03d" % (book_code, num)
+        sid = ("C%02d-S%02d" % (scope[1], scope[2])) if scope[0] == "S" else ("C%02d" % scope[1])
+        # ★★ G-36：印本**重号**的身份消歧。
+        #   ① 次数按**文档顺序**累加（本循环就是文档顺序）⇒ ⛔ 不依赖字典序或哈希，可复现；
+        #   ② **只**在该 (作用域, 号) 被 `ERRATA.tsv` 具名点中（`print_duplicate_number`）时才加后缀
+        #      ⇒ 未在册的撞号**照旧撞**（⛔ 不是「自动去重」）；
+        #   ③ `number` / `number_raw` 仍是**印本上印的**那个号（重号就是两个 9）。
+        occ = dup_seen.get((sid, num), 0) + 1
+        dup_seen[(sid, num)] = occ
+        seen_nums.setdefault(sid, set()).add(num)
+        rid = base_rid
+        if occ >= 2 and match_rows(errata, book_code, sid, num, "print_duplicate_number"):
+            suf = chr(ord("a") + occ - 1)                  # 2→b · 3→c …
+            rid = base_rid + suf
+            dup_suffixed.append({"scope": sid, "number": num, "occurrence": occ,
+                                 "page": page, "from": base_rid, "recipe_id": rid,
+                                 "number_raw": (raw or "").strip()})
         cur = {"number": num, "number_raw": (raw or "").strip(), "ordinal": ordinal,
                "name": norm(name), "name_toc": "", "name_body": norm(name),
                "chapter": chapter, "chapter_seq": chap_seq, "sub_chapter": sub_chapter,
-               "scope_id": ("C%02d-S%02d" % (scope[1], scope[2])) if scope[0] == "S"
-                           else ("C%02d" % scope[1]),
+               "scope_id": sid,
                "ingredients": [], "seasonings": [], "blocks": [],
                "recipe_id": rid}
         recipes.append(cur)
@@ -366,11 +399,35 @@ def assemble(book_code, pages_dir, contract, cfg_series):
                                  "text": m.group("text")})
             add_block("note", st, page, "note")
 
+    def _is_section_line(t):
+        """该行是否是**在册节名** —— 兼容 `@@SECTION 〔主料〕` 与**行内** `〔主料〕 值`（G-22b）。"""
+        s = (t or "").strip()
+        if s.startswith(C.m_sec):
+            s = s[len(C.m_sec):].strip()
+        ms = INLINE_SEC.match(s)
+        if ms and C.section(ms.group(1)):
+            return True
+        return bool(C.section(s)) and len(s) <= 6
+
     # ★ G-29：子类判据要看「**下一非空行**」，而它可能**跨页**（章末页的最后一行）⇒ 先铺一张全局表。
     _pages = [(int(pf.stem[1:]), pf, pf.read_text(encoding="utf-8").splitlines())
               for pf in sorted(pages_dir.glob("p*.md"))]
     _seq = [(pg, i, l.strip()) for pg, _pf, ls in _pages for i, l in enumerate(ls) if l.strip()]
     nxt_nonempty = {(s[0], s[1]): _seq[k + 1][2] for k, s in enumerate(_seq[:-1])}
+    # ★★ G-34：找「下一**内容**行」时必须**跳过页码（`@@FOOTER`）与承接声明（`@@RECIPE_CONT`）**。
+    #   ★ 实测代价：真书 `p0285 L27 @@SECTION （二）面筋的制做` 后面紧跟 `@@FOOTER ·271·`，
+    #     而该食谱的正文在**下一页**（`@@RECIPE_CONT` 之后）⇒ 不跳过，它**永远升不了格**。
+    _order = {(s[0], s[1]): k for k, s in enumerate(_seq)}
+    _skip_pre = (C.m_foot, C.m_cont)
+    _content_idx = [k for k, s in enumerate(_seq) if not s[2].startswith(_skip_pre)]
+
+    def nxt_content(page, i):
+        """自 (page, i) 起的**下一个内容行**（跳过空行／页脚／承接声明）⇒ 无则空串。"""
+        k = _order.get((page, i))
+        if k is None:
+            return ""
+        j = bisect.bisect_right(_content_idx, k)
+        return _seq[_content_idx[j]][2] if j < len(_content_idx) else ""
 
     for page, page_file, lines in _pages:
 
@@ -425,7 +482,7 @@ def assemble(book_code, pages_dir, contract, cfg_series):
                     r0, n0, nm0 = split_start(C, st)
                     if n0 is not None:
                         opens_variant1[0] += 1
-                        open_recipe(r0, n0, nm0)
+                        open_recipe(r0, n0, nm0, page)
                         continue
                 g = C.group(st)
                 if g:
@@ -463,7 +520,7 @@ def assemble(book_code, pages_dir, contract, cfg_series):
                 rest = st[len(C.m_rs):].strip()
                 r0, n0, nm0, why = split_start_diag(C, rest)
                 if n0 is not None:
-                    open_recipe(r0, n0, nm0)
+                    open_recipe(r0, n0, nm0, page)
                 else:
                     # ★ G-28：⛔ 不再是静默 `continue` —— 丢内容必须**具名可见**。
                     #   ★ 为什么必须（实测）：被拒 9 条落在 `十八、粗菜类`，而该章门诊断是
@@ -497,6 +554,37 @@ def assemble(book_code, pages_dir, contract, cfg_series):
                     sec = grp = None
                     drift["subchapters"].append({"page": page, "chapter_seq": chap_seq,
                                                  "sub_seq": sub_seq, "title": sub_chapter})
+                    continue
+                # ★★ G-34：**被标成 `@@SECTION` 的食谱标题** ⇒ 升格为起点。
+                #   ★ 为什么需要它（实测）：真书 `kb/B01/_pages/p0017.md`
+                #       L15 `@@SECTION （四）火腿龙须` / L28 `@@SECTION （五）鸡丝拌三丝` ——
+                #     **内容在、标记错**。这两条食谱因此被上一道食谱吞并，
+                #     章 `C02 二、凉菜类` 的号序列变成 `1,2,3,6,7,…` ⇒ 报 `缺 [4,5]`。
+                #   ★★ 判据**四条**（与既有三条判据⛔ 不重叠）：
+                #     ① `tail` 能读成 (号, 名) —— 走 `split_start`，`number_style` 归一已在其中；
+                #     ② **不进**上面的章分支、也**不进**子类分支
+                #        （⚠ 与缺口原文的偏离：原文写「不匹配 `subchapter_pattern`」。
+                #          实测该条**自相矛盾** —— `（四）火腿龙须` **恰好匹配**该 pattern
+                #          （`^(?:（[一二三四五六七八九十]+）|…类)`），照字面执行会**一条也升不了**。
+                #          故此处按**分支顺序**实现：子类分支自带第二条件「其后紧跟 `@@RECIPE_START`」，
+                #          它与本判据的③**互补** —— 真子类后面跟的是**食谱**，误标的食谱标题后面跟的是**节名**）；
+                #     ③ **下一内容行**（跳过 `@@FOOTER`／`@@RECIPE_CONT`）是**在册节名**；
+                #     ④ ★ 该号在当前作用域里**尚未出现过** —— 升格必须**填一个真缺号**，
+                #        ⛔ 不是造一个新撞号。★ 这一条是**反控逼出来的**：夹具 B01 的
+                #        `p0067 L14 *（三）煎 烹 大 虾` 是上一行 `@@RECIPE_START （三）…` 的
+                #        **回声行**，其下一行正是 `@@SECTION 〔主 料〕` ——
+                #        没有④，它会被升格成**重复的 3 号**（实测）。
+                _g34 = split_start(C, tail)
+                _sid = ("C%02d-S%02d" % (scope[1], scope[2])) if scope[0] == "S" \
+                    else ("C%02d" % scope[1])
+                if (_g34[1] is not None
+                        and _is_section_line(nxt_content(page, i))
+                        and _g34[1] not in seen_nums.get(_sid, set())):
+                    opens_promoted[0] += 1
+                    drift["promoted_section_starts"].append(
+                        {"page": page, "line": i + 1, "raw": _g34[0], "number": _g34[1],
+                         "name": _g34[2], "scope_id": _sid, "from": tail})
+                    open_recipe(_g34[0], _g34[1], _g34[2], page)
                     continue
                 sec = C.section(tail) or "other"
                 grp = None
@@ -564,7 +652,8 @@ def assemble(book_code, pages_dir, contract, cfg_series):
     #     （实测玩具 B01 ＝ **5 记录 / 4 标记行**；真书也有变体①页）⇒ 那样会把好产物判红。
     starts_n = starts_body[0]
     v1_n = opens_variant1[0]
-    starts_accounted = (starts_n + v1_n) == (len(recipes) + len(rejected))
+    pr_n = opens_promoted[0]               # ★ G-34：升格而来的起点**也没有标记行**
+    starts_accounted = (starts_n + v1_n + pr_n) == (len(recipes) + len(rejected))
     all_starts_accepted = not rejected
     no_method = [r["number"] for r in recipes
                  if not any(b["type"] == "step" for b in blocks
@@ -576,6 +665,10 @@ def assemble(book_code, pages_dir, contract, cfg_series):
     stats = {"recipes": len(recipes), "blocks": len(blocks), "glossary": len(glossary),
              "starts_body": starts_n,
              "recipes_from_variant1": v1_n,
+             "recipes_from_promoted_section": pr_n,
+             "promoted_section_starts": drift["promoted_section_starts"],
+             "dup_suffixed": dup_suffixed,
+             "ids_unique_corpus": len({r["recipe_id"] for r in recipes}) == len(recipes),
              "starts_accounted": starts_accounted,
              "rejected_starts": rejected,
              "rejected_starts_by_reason": dict(drift["rejected_reasons"]),
@@ -633,10 +726,15 @@ def main():
         #   而门的判语是「缺 [] ＋ 重号 […]」——缺号列表**为空**）。⇒ 丢内容**不可见**。
         meta["gates"]["all_starts_accepted"] = not stats["rejected_starts"]
         meta["gates"]["starts_accounted"] = stats["starts_accounted"]
+        # ★★ G-36：**生成侧**的 id 唯一性 —— ⛔ 不能只靠 G4（它读 `vectors_report.json`，
+        #   而那要跑过 S4 才有）⇒ 「id 真唯一」这件事必须在**无键机器上**也有人看守。
+        #   ★ 豁免规则与门侧同一条（只认 `ERRATA.tsv` 具名点中的那一组）。
+        meta["gates"]["ids_unique_corpus"] = stats["ids_unique_corpus"]
         kdir = s["_out"] / "kb" / b["code"]
         ok = (contiguous_ok and not stats["recipes_without_method"]
               and not stats["numeric_only_step_blocks"]
-              and meta["gates"]["all_starts_accepted"] and meta["gates"]["starts_accounted"])
+              and meta["gates"]["all_starts_accepted"] and meta["gates"]["starts_accounted"]
+              and stats["ids_unique_corpus"])
         print("  [%s] %-6s %d 页 ⇒ %d 记录 · %d 块 · 注释 %d 条 | 编号(%s/%d 作用域)连续=%s "
               "缺制法=%s 伪步骤=%d 起点 %d/%d 拒收=%d | "
               "变体命中 ①%d页 ②%d ③%d ④%d ⑤%d | 目录 %d行/%d页 | 拼接 %d 处"
@@ -669,6 +767,24 @@ def main():
                 len(stats["subchapters"]),
                 " · ".join("C%02d/S%02d %s" % (x["chapter_seq"], x["sub_seq"], x["title"])
                            for x in stats["subchapters"][:12])))
+        # ★★ G-34：升格**必须具名** —— 它是「引擎替转写补了一行标记」，人得能逐条复核。
+        if stats["promoted_section_starts"]:
+            print("       ★ `@@SECTION` 升格为起点 %d 条（G-34，⛔ 无标记行）：" %
+                  len(stats["promoted_section_starts"]))
+            for x in stats["promoted_section_starts"][:40]:
+                print("          p%04d L%-3d [%s] %s ⇒ %s 号 %d" % (
+                    x["page"], x["line"], x["scope_id"], x["raw"], x["name"], x["number"]))
+            if len(stats["promoted_section_starts"]) > 40:
+                print("          … 另 %d 条" % (len(stats["promoted_section_starts"]) - 40))
+        # ★★ G-36：后缀**一律打印** —— 与 ERRATA 的纪律③同一条：门/引擎改了什么，必须读得出。
+        if stats["dup_suffixed"]:
+            print("       ★ 印本重号消歧（G-36，%s）：" % stats["contract_drift"]["errata_note"])
+            for x in stats["dup_suffixed"]:
+                print("          p%04d [%s] 印本第 %d 次出现「%s」⇒ %s → %s" % (
+                    x["page"] or 0, x["scope"], x["occurrence"], x["number_raw"],
+                    x["from"], x["recipe_id"]))
+        for r in stats["contract_drift"]["errata_rejected"]:
+            print("       ⛔ ERRATA 第 %s 行不受理：%s" % (r["line"], r["why"]))
         if a.dry_run:
             bad += 0 if ok else 1
             continue

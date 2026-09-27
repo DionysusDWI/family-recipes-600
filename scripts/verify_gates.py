@@ -55,52 +55,20 @@ def load_banned(base):
     return items, "%s ⇒ %d 条" % (BANNED_FILE, len(items))
 
 
-# ★★ G-33：**印本自身的号错**（⛔ 不是转写错）走**具名豁免** —— 仓根 `ERRATA.tsv`。
+# ★★ G-33 ／ G-36：**印本自身的号错**（⛔ 不是转写错）走**具名豁免**与**具名消歧** —— 仓根 `ERRATA.tsv`。
 #   为什么不改数据：那个号是**印本印出来的**，改数据＝产物与印本不再逐字一致 ⇒ 事实被抹平。
 #   三条纪律（与 `privacy-allow.txt` · `repo_check --accept-engine` 同一族）：
 #     ① ⛔ **无证据不受理** —— 每行必须带 `evidence` 与 `source`（源页），否则该行**作废并报出**；
-#     ② ⛔ **只豁免具名的那一个**（作用域 ＋ 号）—— 未在册的撞号/缺号**照旧红**，⛔ 无「整类豁免」；
-#     ③ ★ **豁免一律打印** —— 门从红转绿时，必须读出是**哪一行**换来的。
-#   ★ 缺表 ⇒ **零豁免**（更严，⛔ 不是「跳过」）：与 `load_banned` 的三态语义不同，
+#     ② ⛔ **只对具名的那一个生效**（作用域 ＋ 号）—— 未在册的撞号/缺号**照旧红**，⛔ 无「整类豁免」；
+#     ③ ★ **一律打印** —— 门从红转绿时，必须读出是**哪一行**换来的。
+#   ★ 缺表 ⇒ **零生效**（更严，⛔ 不是「跳过」）：与 `load_banned` 的三态语义不同，
 #     此处「没有表」只会让门**更红**，所以不需要 SKIP 态。
-ERRATA_FILE = "ERRATA.tsv"
-ERRATA_KINDS = ("print_duplicate_number", "print_missing_number")
-ERRATA_COLS = ("book", "scope", "kind", "value", "expected", "evidence", "source")
-
-
-def scope_code(x):
-    """作用域比对键：只取首段代码（`C23 五、烧菜类` 与 `C23` 视为同一作用域）。
-
-    ★ 为什么必须归一：`_meta.json` 的缺号键是 **`C23 五、烧菜类`**（含章名），
-      而归因列给出的 `scope` 是 **`C23`**（`scope_id`）⇒ 不归一时**两侧永远对不上**，
-      豁免会**在它本该生效的输入上悄悄失效**（与 G-31 v1 判据同一种错法）。
-    """
-    return str(x or "").split()[0] if str(x or "").split() else ""
-
-
-def load_errata(base, override=None):
-    """读在册**印本错**声明表 ⇒ `(受理行, 不受理行, 读数)`（★ G-33）。"""
-    f = Path(override).resolve() if override else (base / ERRATA_FILE)
-    if not f.exists():
-        return [], [], "%s 不存在 ⇒ **零豁免**（门按原始读数判，⛔ 不是跳过）" % f.name
-    ok, bad = [], []
-    for i, ln in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
-        if not ln.strip() or ln.lstrip().startswith("#"):
-            continue
-        parts = ln.split("\t")
-        row = dict(zip(ERRATA_COLS, [x.strip() for x in parts]))
-        row["line"] = i
-        if len(parts) < len(ERRATA_COLS):
-            bad.append({"line": i, "why": "列数 %d < %d ⇒ 不受理" % (len(parts), len(ERRATA_COLS))})
-            continue
-        if row["kind"] not in ERRATA_KINDS:
-            bad.append({"line": i, "why": "kind 不在册：%s" % row["kind"]})
-            continue
-        if not row["evidence"] or not row["source"]:
-            bad.append({"line": i, "why": "⛔ 无 evidence / 无 source（源页）⇒ 不受理"})
-            continue
-        ok.append(row)
-    return ok, bad, "%s ⇒ 受理 %d 行 · 不受理 %d 行" % (f.name, len(ok), len(bad))
+#
+# ★★ 实现已**整体提到 `_errata.py`**（缺口 **G-36**）：生成侧 `s2_build_corpus.py` 现在也读同一张表
+#   （给印本重号那条加**确定性后缀**，好让 `recipe_id` 真唯一）。
+#   ⛔ 这里**不再留第二份解析** —— 两侧各写一份，迟早对同一行给出两个答案（G-02 同族）。
+from _errata import (ERRATA_COLS, ERRATA_FILE, ERRATA_KINDS,   # noqa: E402,F401
+                     load_errata, match_rows, scope_code)
 
 
 def run(cmd):
