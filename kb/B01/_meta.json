@@ -1031,8 +1031,7 @@
   },
   "verdict": "FAIL",
   "fails": [
-   "G2",
-   "G4"
+   "G2"
   ],
   "skips": [],
   "readings": {
@@ -1044,6 +1043,70 @@
    },
    "G2_assembly": {
     "contiguous_in_scope": false,
+    "contiguous_raw": false,
+    "errata_exempted_missing": [
+     [
+      "C23 五、烧菜类",
+      8
+     ]
+    ],
+    "missing_effective": {
+     "C02 二、凉菜类": [
+      4,
+      5
+     ],
+     "C03 三、燕菜类": [
+      2,
+      3
+     ],
+     "C04 四、鱼翅类": [
+      6,
+      7
+     ],
+     "C05 五、银耳类": [
+      2,
+      3
+     ],
+     "C15 十五、口蘑类": [
+      1
+     ],
+     "C16 十六、肉类": [
+      18,
+      19,
+      24,
+      25
+     ],
+     "C17 十七、杂类 / （七）其他类": [
+      35,
+      36,
+      37
+     ],
+     "C17 十七、杂类 / （九）火锅类": [
+      5,
+      6
+     ],
+     "C18 十八、粗菜类 / （一）白菜类": [
+      3
+     ],
+     "C20 二、蒸菜类": [
+      5,
+      6
+     ],
+     "C21 三、熘菜类": [
+      8,
+      9
+     ],
+     "C24 七、油炸菜类": [
+      30,
+      31,
+      32,
+      33,
+      34
+     ],
+     "C29 十二、其他素菜制做法 / （一）软川的制做": [
+      2
+     ]
+    },
     "numbering": "per_chapter",
     "without_method": [],
     "starts_body": 569,
@@ -1076,6 +1139,16 @@
      "assembly_side": 0,
      "transcription_side": 1,
      "criterion": "v2 页跨度内存在「结构 + 位置」都像边界却未被 chapter/subchapter 认出的 @@SECTION 行（其后紧跟 @@RECIPE_START）⇒ 装配侧；否则 ⇒ 转写侧",
+     "duplicate_id_list": [
+      {
+       "id": "B01-C23-R009",
+       "scope": "C23",
+       "numbers": [
+        9,
+        9
+       ]
+      }
+     ],
      "examples": [
       {
        "id": "B01-C23-R009",
@@ -1089,7 +1162,12 @@
        ]
       }
      ]
-    }
+    },
+    "gates_bad_after_errata": [],
+    "errata_exempted": [
+     "ids_unique: 1 个撞号全部在册（B01-C23-R009）"
+    ],
+    "duplicates_uncovered": []
    },
    "G6_fallback_zero_network": {
     "exit": 0,
@@ -1103,6 +1181,18 @@
     "exit": 0,
     "tail": [
      "判据: PASS 3 · FAIL 0 · SKIP(环境) 0"
+    ]
+   },
+   "errata": {
+    "note": "ERRATA.tsv ⇒ 受理 2 行 · 不受理 0 行",
+    "rejected": [],
+    "accepted_lines": [
+     19,
+     20
+    ],
+    "accepted": [
+     "C23:print_duplicate_number=9",
+     "C23:print_missing_number=8"
     ]
    }
   }

@@ -2,6 +2,6 @@
 # ★ 判据分工见 scripts/_engine.py 头注：id 承重，version 只是标签。
 # ⛔ 本文件描述**产物出处**的引擎，不是当前 scripts/ 里的引擎。
 
-artifact_engine_id=261fe80458a1fa82
-artifact_engine_version=0.1.5
-note=由 repo_check.py --accept-engine 于 2026-09-27T22:07:36+08:00 改写（旧 id=e3decbb67ce7f3c3）。理由：同步技能 v0.1.5：本次只改「门判据」——verify_gates.py 新增 G-31 归因列；★ 生成侧 16 件逐字节未变（S2/S3/S4/S5 与产出产物那一版完全相同）⇒ 产物无需重建，仅按内容指纹规则改锁。G2/G4 仍红：剩余 1 处撞号经归因列判为转写侧（C23 号错）。
+artifact_engine_id=28e399c947eb1323
+artifact_engine_version=0.1.6
+note=由 repo_check.py --accept-engine 于 2026-09-27T22:27:17+08:00 改写（旧 id=261fe80458a1fa82）。理由：G-33 引擎 0.1.5->0.1.6 只改**门**（verify_gates.py 具名豁免）＋ 版本标签 _ENGINE；git diff v0.1.5..v0.1.6 --stat scripts/ 只列这 2 件，生成侧 16 件逐字节未变 ⇒ kb/** 产物不受影响，无需重建

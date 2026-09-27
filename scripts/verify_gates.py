@@ -55,6 +55,54 @@ def load_banned(base):
     return items, "%s ⇒ %d 条" % (BANNED_FILE, len(items))
 
 
+# ★★ G-33：**印本自身的号错**（⛔ 不是转写错）走**具名豁免** —— 仓根 `ERRATA.tsv`。
+#   为什么不改数据：那个号是**印本印出来的**，改数据＝产物与印本不再逐字一致 ⇒ 事实被抹平。
+#   三条纪律（与 `privacy-allow.txt` · `repo_check --accept-engine` 同一族）：
+#     ① ⛔ **无证据不受理** —— 每行必须带 `evidence` 与 `source`（源页），否则该行**作废并报出**；
+#     ② ⛔ **只豁免具名的那一个**（作用域 ＋ 号）—— 未在册的撞号/缺号**照旧红**，⛔ 无「整类豁免」；
+#     ③ ★ **豁免一律打印** —— 门从红转绿时，必须读出是**哪一行**换来的。
+#   ★ 缺表 ⇒ **零豁免**（更严，⛔ 不是「跳过」）：与 `load_banned` 的三态语义不同，
+#     此处「没有表」只会让门**更红**，所以不需要 SKIP 态。
+ERRATA_FILE = "ERRATA.tsv"
+ERRATA_KINDS = ("print_duplicate_number", "print_missing_number")
+ERRATA_COLS = ("book", "scope", "kind", "value", "expected", "evidence", "source")
+
+
+def scope_code(x):
+    """作用域比对键：只取首段代码（`C23 五、烧菜类` 与 `C23` 视为同一作用域）。
+
+    ★ 为什么必须归一：`_meta.json` 的缺号键是 **`C23 五、烧菜类`**（含章名），
+      而归因列给出的 `scope` 是 **`C23`**（`scope_id`）⇒ 不归一时**两侧永远对不上**，
+      豁免会**在它本该生效的输入上悄悄失效**（与 G-31 v1 判据同一种错法）。
+    """
+    return str(x or "").split()[0] if str(x or "").split() else ""
+
+
+def load_errata(base, override=None):
+    """读在册**印本错**声明表 ⇒ `(受理行, 不受理行, 读数)`（★ G-33）。"""
+    f = Path(override).resolve() if override else (base / ERRATA_FILE)
+    if not f.exists():
+        return [], [], "%s 不存在 ⇒ **零豁免**（门按原始读数判，⛔ 不是跳过）" % f.name
+    ok, bad = [], []
+    for i, ln in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
+        if not ln.strip() or ln.lstrip().startswith("#"):
+            continue
+        parts = ln.split("\t")
+        row = dict(zip(ERRATA_COLS, [x.strip() for x in parts]))
+        row["line"] = i
+        if len(parts) < len(ERRATA_COLS):
+            bad.append({"line": i, "why": "列数 %d < %d ⇒ 不受理" % (len(parts), len(ERRATA_COLS))})
+            continue
+        if row["kind"] not in ERRATA_KINDS:
+            bad.append({"line": i, "why": "kind 不在册：%s" % row["kind"]})
+            continue
+        if not row["evidence"] or not row["source"]:
+            bad.append({"line": i, "why": "⛔ 无 evidence / 无 source（源页）⇒ 不受理"})
+            continue
+        ok.append(row)
+    return ok, bad, "%s ⇒ 受理 %d 行 · 不受理 %d 行" % (f.name, len(ok), len(bad))
+
+
 def run(cmd):
     r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     return r.returncode, (r.stdout or "") + (r.stderr or "")
@@ -180,9 +228,14 @@ def id_collision_attribution(kdir, cfg=None, pages_dir=None):
                              "chapter": grp[0].get("chapter") or "",
                              "records": len(grp),
                              "numbers": sorted(x.get("number") for x in grp)})
+    # ★★ G-33：`examples` 截断到 12 条（人读用），而**豁免判据需要全集** ⇒ 另给一份纯读数。
+    #    ⛔ 不得用 `examples` 判「是否全部撞号都在册」—— 截断会把第 13 个撞号**静默算成已豁免**。
+    dup_list = [{"id": rid, "scope": scope_code(dup[rid][0].get("scope_id")),
+                 "numbers": sorted(x.get("number") for x in dup[rid])} for rid in sorted(dup)]
     return {"duplicate_ids": len(dup), "assembly_side": asm, "transcription_side": trans,
             "criterion": ("v2 页跨度内存在「结构 + 位置」都像边界却未被 chapter/subchapter 认出的 "
                           "@@SECTION 行（其后紧跟 @@RECIPE_START）⇒ 装配侧；否则 ⇒ 转写侧"),
+            "duplicate_id_list": dup_list,
             "examples": examples[:12]}
 
 
@@ -190,6 +243,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--series", required=True)
     ap.add_argument("--book")
+    # ★ G-33：路径**只有**这一处可改，且它**只能让门更严**（指向空表/坏表 ⇒ 豁免失效 ⇒ 照旧红）
+    #   ⇒ 因此它是**反控**的入口（正控＝在册表、负控＝空表），⛔ 不是「消红开关」。
+    ap.add_argument("--errata-file", help="覆盖 ERRATA.tsv 路径（★ 反控用：空表应使门回到红）")
     a = ap.parse_args()
 
     import yaml
@@ -201,6 +257,11 @@ def main():
     src_root = (base / str(s["source_root"])).resolve()
     # ★ G5 的两张判据表都来自配置：在册禁令 ＋ 本系列水印（缺口 G-03 / G-04）
     banned, banned_note = load_banned(base)
+    # ★★ G-33：印本错声明表（★ 缺表＝零豁免；不受理的行**打印出来**，⛔ 不静默丢弃）
+    errata, errata_bad, errata_note = load_errata(base, a.errata_file)
+    print("★ %s" % errata_note)
+    for r in errata_bad:
+        print("  ⛔ ERRATA 第 %s 行不受理：%s" % (r["line"], r["why"]))
     wms = [str(x).strip() for x in (cfg.get("watermark_strip") or []) if str(x).strip()]
     books = [b for b in s["books"] if not a.book or b["code"] == a.book]
 
@@ -212,6 +273,8 @@ def main():
         fails = []
         skips = []          # ★ 第三态：**不可判**（如「请求了向量却没走到向量层」）
         reads = {}
+        # ★ G-33：本册适用的印本错行（`*`／空串＝全册适用）
+        erows = [r for r in errata if r["book"] in ("", code, "*")]
 
         # G0 幂等
         rc, _o = run([sys.executable, str(HERE / "s2_build_corpus.py"), "--series", str(p),
@@ -234,8 +297,22 @@ def main():
         # ★★ G-29：连续性判据必须**按编号作用域**取，⛔ 不是恒取「全册 1..N」。
         #   ★ 实测踩过：`numbering: per_chapter` 的册上，全局连续**必然为假**（每章从 1 重起），
         #     旧版读的是 `numbers_contiguous` ⇒ 它红的原因是**取错了那一格**，与装配无关。
-        contig = (bool(c.get("numbers_contiguous_per_chapter"))
-                  if c.get("numbering") == "per_chapter" else bool(c["numbers_contiguous"]))
+        contig_raw = (bool(c.get("numbers_contiguous_per_chapter"))
+                      if c.get("numbering") == "per_chapter" else bool(c["numbers_contiguous"]))
+        # ★★ G-33：**印本号错**具名豁免（⛔ 只减掉在册点名的那些号）。
+        #    ★ 本册实测：14 个作用域缺号里**只有 C23 的 1 处**是印本印错（重 9 缺 8），
+        #      其余 13 处是**转写把食谱标题标成了 `@@SECTION`**（`p0017 （四）火腿龙须` 实证）
+        #      ⇒ 它们**不在豁免之列**，G2 照旧红 —— 这是**正确的读数**，⛔ 不是漏配。
+        miss_raw = c.get("numbers_missing_within_chapter") or {}
+        ex_miss = {(scope_code(r["scope"]), r["value"]) for r in erows
+                   if r["kind"] == "print_missing_number"}
+        miss_exempted = sorted([sc, n] for sc, ns in miss_raw.items() for n in ns
+                               if (scope_code(sc), str(n)) in ex_miss)
+        miss_eff = {sc: [n for n in ns if (scope_code(sc), str(n)) not in ex_miss]
+                    for sc, ns in miss_raw.items()}
+        miss_eff = {sc: ns for sc, ns in miss_eff.items() if ns}
+        # ★ 放行条件**三条缺一不可**：原始不连续 · 原始确有缺号 · 缺号**全部**在册
+        contig = bool(contig_raw) or (bool(miss_raw) and not miss_eff and bool(miss_exempted))
         # ★★ G-28：这里是**两条不同的判据**，⛔ 不可合并成一条：
         #   `accounted`（恒等式）标记行数 ＋ 变体①起点数 == 记录数 ＋ 拒收数 ⇒ 抓「起点跑到账外」；
         #   `accepted` （判语）  拒收 == 0                              ⇒ 抓「真的丢了内容」。
@@ -252,6 +329,9 @@ def main():
             starts_ok = (starts_n + v1_n) == (rec_n + rj_n) and rj_n == 0
         ok2 = contig and not c["recipes_without_method"] and starts_ok
         reads["G2_assembly"] = {"contiguous_in_scope": contig,
+                                "contiguous_raw": contig_raw,
+                                "errata_exempted_missing": miss_exempted,
+                                "missing_effective": miss_eff,
                                 "numbering": c.get("numbering"),
                                 "without_method": c["recipes_without_method"],
                                 "starts_body": starts_n, "recipes_from_variant1": v1_n,
@@ -277,12 +357,30 @@ def main():
         rp = kdir / "corpus" / "vectors_report.json"
         rep = json.loads(rp.read_text(encoding="utf-8")) if rp.exists() else {}
         g4gates = rep.get("gates", {}) or {}
+        attr = id_collision_attribution(
+            kdir, cfg, resolve_pages_dir(p.parent, (cfg.get("series", {}) or {}), code))
         reads["G4_vectors"] = {"check_exit": rc4, "model": rep.get("model"),
                                "api_calls_last": rep.get("api_calls"), "gates": g4gates,
                                # ★★ G-31 归因列：**只加读数，⛔ 不改判决**（强度不变）
-                               "id_collision_attribution": id_collision_attribution(
-                                   kdir, cfg,
-                                   resolve_pages_dir(p.parent, (cfg.get("series", {}) or {}), code))}
+                               "id_collision_attribution": attr}
+        # ★★ G-33：`ids_unique=false` 若**全部**撞号都能被在册印本错点名 ⇒ 具名豁免。
+        #    ★ 用的是**全集** `duplicate_id_list`（⛔ 不是人读的 `examples`，那被截断到 12 条）；
+        #      只要还剩**一个**未在册的撞号，就 ⛔ 不豁免（照旧红，并由 `duplicates_uncovered` 点名）。
+        g4_bad = sorted(k for k, v in g4gates.items() if not v)
+        ex_dup = {(scope_code(r["scope"]), r["value"]) for r in erows
+                  if r["kind"] == "print_duplicate_number"}
+        dup_all = (attr or {}).get("duplicate_id_list") or []
+        dup_uncovered = sorted(d["id"] for d in dup_all
+                               if not any((d.get("scope"), str(n)) in ex_dup
+                                          for n in (d.get("numbers") or [])))
+        g4_exempted = []
+        if "ids_unique" in g4_bad and dup_all and not dup_uncovered:
+            g4_bad = [k for k in g4_bad if k != "ids_unique"]
+            g4_exempted = ["ids_unique: %d 个撞号全部在册（%s）"
+                           % (len(dup_all), ",".join(d["id"] for d in dup_all))]
+        reads["G4_vectors"]["gates_bad_after_errata"] = g4_bad
+        reads["G4_vectors"]["errata_exempted"] = g4_exempted
+        reads["G4_vectors"]["duplicates_uncovered"] = dup_uncovered
         # ★★ 缺口 **G-24**：`--check` 的 exit 3 ＝「**签名不符 ⇒ 需重算**」。
         #    此时盘上的 `vectors_report.json` 描述的是**另一份语料**，⛔ 它的 `gates`
         #    不是对**当前**语料的证据 ⇒ 必须**先短路**。
@@ -292,7 +390,8 @@ def main():
             reads["G4_vectors"]["why"] = "签名不符 ⇒ 需重算（★ 旧报告判语对当前语料无效）"
         # ★★ G-09 的正身：无键时 `--check` 返回 **3（不可判）**，⛔ 不是 FAIL。
         #    ⛔ 但**报告里已经记着的判语**若为假，那是与键无关的真失败。
-        elif g4gates and not all(g4gates.values()):
+        #    ★ G-33：这里的 `g4_bad` **已扣掉在册印本错**（旧版写 `all(g4gates.values())`）。
+        elif g4_bad:
             fails.append("G4")
         else:
             gate(rc4, "G4", fails, skips)
@@ -330,6 +429,12 @@ def main():
         reads["G9_self_test"] = {"exit": rc,
                                  "tail": [l for l in o.splitlines() if l.startswith("判据:")]}
         gate(rc, "G9", fails, skips)    # ★ 三态：exit 3 ⇒ SKIP（⛔ 不算通过、也⛔ 不算失败）
+        # ★ G-33：豁免读数**入册** —— 门转绿时必须能读出「是哪一行换来的」（纪律 ③）
+        reads["errata"] = {
+            "note": errata_note, "rejected": errata_bad,
+            "accepted_lines": [r["line"] for r in erows],
+            "accepted": sorted("%s:%s=%s" % (scope_code(r["scope"]), r["kind"], r["value"])
+                               for r in erows)}
         # Z 判决回写
         verdict = "FAIL" if fails else ("SKIP" if skips else "PASS")
         meta.setdefault("gates", {})["verdict"] = verdict
