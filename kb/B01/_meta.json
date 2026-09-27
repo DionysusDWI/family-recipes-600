@@ -2,40 +2,167 @@
  "book": "B01",
  "title": "巧做家庭菜600例",
  "counts": {
-  "recipes": 546,
+  "recipes": 568,
   "blocks": 3655,
   "glossary": 0,
+  "starts_body": 569,
+  "recipes_from_variant1": 0,
+  "starts_accounted": true,
+  "rejected_starts": [
+   {
+    "page": 15,
+    "line": 3,
+    "marker": "@@RECIPE_START",
+    "rest": "四拔汤（又名：一煮、二燉、三清、四拔汤）",
+    "reason": "unnumbered"
+   }
+  ],
+  "rejected_starts_by_reason": {
+   "unnumbered": 1
+  },
   "numbers_contiguous": false,
   "numbers_contiguous_per_chapter": false,
   "numbering": "per_chapter",
+  "numbering_scopes": 40,
+  "subchapters": [
+   {
+    "page": 104,
+    "chapter_seq": 17,
+    "sub_seq": 1,
+    "title": "（一）干贝"
+   },
+   {
+    "page": 107,
+    "chapter_seq": 17,
+    "sub_seq": 2,
+    "title": "（二）蟹类"
+   },
+   {
+    "page": 109,
+    "chapter_seq": 17,
+    "sub_seq": 3,
+    "title": "（三）蛎黄类"
+   },
+   {
+    "page": 110,
+    "chapter_seq": 17,
+    "sub_seq": 4,
+    "title": "（四）虾子类"
+   },
+   {
+    "page": 113,
+    "chapter_seq": 17,
+    "sub_seq": 5,
+    "title": "（五）鸽蛋类"
+   },
+   {
+    "page": 117,
+    "chapter_seq": 17,
+    "sub_seq": 6,
+    "title": "（六）哈什蚂"
+   },
+   {
+    "page": 118,
+    "chapter_seq": 17,
+    "sub_seq": 7,
+    "title": "（七）其他类"
+   },
+   {
+    "page": 142,
+    "chapter_seq": 17,
+    "sub_seq": 8,
+    "title": "（八）松类"
+   },
+   {
+    "page": 144,
+    "chapter_seq": 17,
+    "sub_seq": 9,
+    "title": "（九）火锅类"
+   },
+   {
+    "page": 149,
+    "chapter_seq": 18,
+    "sub_seq": 1,
+    "title": "（一）白菜类"
+   },
+   {
+    "page": 154,
+    "chapter_seq": 18,
+    "sub_seq": 2,
+    "title": "（二）豆腐"
+   },
+   {
+    "page": 162,
+    "chapter_seq": 18,
+    "sub_seq": 3,
+    "title": "（三）萝卜"
+   },
+   {
+    "page": 165,
+    "chapter_seq": 18,
+    "sub_seq": 4,
+    "title": "（四）茄子"
+   },
+   {
+    "page": 167,
+    "chapter_seq": 18,
+    "sub_seq": 5,
+    "title": "（五）其他"
+   },
+   {
+    "page": 229,
+    "chapter_seq": 23,
+    "sub_seq": 1,
+    "title": "酿菜类"
+   },
+   {
+    "page": 285,
+    "chapter_seq": 28,
+    "sub_seq": 1,
+    "title": "（一）软川的制做"
+   }
+  ],
   "chapters": [
-   "二、凉菜类",
-   "三、燕菜类",
-   "四、鱼翅类",
-   "五、银耳类",
-   "六、海参类",
-   "七、鲍鱼类",
-   "八、熊掌类",
-   "九、鹿尾类",
-   "十、鹿茸类",
-   "十一、鱼类",
-   "十二、虾类",
-   "十三、鸡类",
-   "十四、猴头蘑类",
-   "十五、口蘑类",
-   "十六、肉类",
-   "十七、杂类",
-   "十八、粗菜类",
-   "一、凉菜类",
-   "二、蒸菜类",
-   "三、熘菜类",
-   "四、炒菜类",
-   "五、烧菜类",
-   "七、油炸菜类",
-   "八、甜菜类",
-   "九、烩菜类",
-   "十、汤菜类",
-   "十二、其他素菜制做法"
+   "C02 二、凉菜类",
+   "C03 三、燕菜类",
+   "C04 四、鱼翅类",
+   "C05 五、银耳类",
+   "C06 六、海参类",
+   "C07 七、鲍鱼类",
+   "C08 八、熊掌类",
+   "C09 九、鹿尾类",
+   "C10 十、鹿茸类",
+   "C11 十一、鱼类",
+   "C12 十二、虾类",
+   "C13 十三、鸡类",
+   "C14 十四、猴头蘑类",
+   "C15 十五、口蘑类",
+   "C16 十六、肉类",
+   "C17 十七、杂类 / （一）干贝",
+   "C17 十七、杂类 / （二）蟹类",
+   "C17 十七、杂类 / （三）蛎黄类",
+   "C17 十七、杂类 / （四）虾子类",
+   "C17 十七、杂类 / （五）鸽蛋类",
+   "C17 十七、杂类 / （六）哈什蚂",
+   "C17 十七、杂类 / （七）其他类",
+   "C17 十七、杂类 / （八）松类",
+   "C17 十七、杂类 / （九）火锅类",
+   "C18 十八、粗菜类 / （一）白菜类",
+   "C18 十八、粗菜类 / （二）豆腐",
+   "C18 十八、粗菜类 / （三）萝卜",
+   "C18 十八、粗菜类 / （四）茄子",
+   "C18 十八、粗菜类 / （五）其他",
+   "C19 一、凉菜类",
+   "C20 二、蒸菜类",
+   "C21 三、熘菜类",
+   "C22 四、炒菜类",
+   "C23 五、烧菜类",
+   "C23 五、烧菜类 / 酿菜类",
+   "C24 七、油炸菜类",
+   "C25 八、甜菜类",
+   "C26 九、烩菜类",
+   "C27 十、汤菜类",
+   "C28 十二、其他素菜制做法 / （一）软川的制做"
   ],
   "numbers_within_chapter": {
    "C02 二、凉菜类": [
@@ -187,8 +314,6 @@
    "C16 十六、肉类": [
     1,
     2,
-    2,
-    2,
     3,
     4,
     5,
@@ -210,48 +335,61 @@
     23,
     26,
     27,
+    28,
+    29,
     30,
     31,
     32
    ],
-   "C17 十七、杂类": [
-    1,
-    1,
-    1,
-    1,
-    1,
-    1,
+   "C17 十七、杂类 / （一）干贝": [
     1,
     2,
-    2,
-    2,
-    2,
-    2,
-    3,
-    3,
-    3,
-    3,
-    3,
     3,
     4,
-    4,
-    4,
-    4,
-    4,
-    5,
-    5,
     5,
     6,
-    6,
+    7
+   ],
+   "C17 十七、杂类 / （二）蟹类": [
+    1,
+    2,
+    3
+   ],
+   "C17 十七、杂类 / （三）蛎黄类": [
+    1,
+    2,
+    3
+   ],
+   "C17 十七、杂类 / （四）虾子类": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "C17 十七、杂类 / （五）鸽蛋类": [
+    1,
+    2,
+    3,
+    4,
+    5,
     6,
     7,
-    7,
+    8
+   ],
+   "C17 十七、杂类 / （六）哈什蚂": [
+    1
+   ],
+   "C17 十七、杂类 / （七）其他类": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
     7,
     8,
-    8,
     9,
-    9,
-    10,
     10,
     11,
     12,
@@ -285,39 +423,74 @@
     43,
     44,
     45,
+    46,
+    47,
     48
    ],
-   "C18 十八、粗菜类": [
-    1,
+   "C17 十七、杂类 / （八）松类": [
     1,
     2,
     3,
+    4
+   ],
+   "C17 十七、杂类 / （九）火锅类": [
+    1,
+    2,
     3,
-    3,
-    3,
     4,
-    4,
-    4,
-    4,
-    5,
-    5,
-    5,
-    5,
-    6,
-    6,
-    6,
-    7,
-    7,
     7,
     8,
     9,
-    10,
+    10
+   ],
+   "C18 十八、粗菜类 / （一）白菜类": [
+    1,
+    2,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+   ],
+   "C18 十八、粗菜类 / （二）豆腐": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
     10,
     11,
     12,
     13,
     14,
     15
+   ],
+   "C18 十八、粗菜类 / （三）萝卜": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ],
+   "C18 十八、粗菜类 / （四）茄子": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "C18 十八、粗菜类 / （五）其他": [
+    1,
+    2,
+    3
    ],
    "C19 一、凉菜类": [
     1,
@@ -414,26 +587,15 @@
    ],
    "C23 五、烧菜类": [
     1,
-    1,
-    2,
     2,
     3,
-    3,
-    4,
     4,
     5,
-    5,
-    6,
     6,
     7,
-    7,
-    8,
-    9,
     9,
     9,
     10,
-    10,
-    11,
     11,
     12,
     13,
@@ -485,6 +647,19 @@
     59,
     60,
     61
+   ],
+   "C23 五、烧菜类 / 酿菜类": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
    ],
    "C24 七、油炸菜类": [
     1,
@@ -633,7 +808,7 @@
     28,
     29
    ],
-   "C28 十二、其他素菜制做法": [
+   "C28 十二、其他素菜制做法 / （一）软川的制做": [
     1,
     3,
     4
@@ -663,18 +838,20 @@
     18,
     19,
     24,
-    25,
-    28,
-    29
+    25
    ],
-   "C17 十七、杂类": [
+   "C17 十七、杂类 / （七）其他类": [
     35,
     36,
-    37,
-    46,
-    47
+    37
    ],
-   "C18 十八、粗菜类": [],
+   "C17 十七、杂类 / （九）火锅类": [
+    5,
+    6
+   ],
+   "C18 十八、粗菜类 / （一）白菜类": [
+    3
+   ],
    "C20 二、蒸菜类": [
     5,
     6
@@ -683,7 +860,9 @@
     8,
     9
    ],
-   "C23 五、烧菜类": [],
+   "C23 五、烧菜类": [
+    8
+   ],
    "C24 七、油炸菜类": [
     30,
     31,
@@ -692,7 +871,7 @@
     34
    ],
    "C27 十、汤菜类": [],
-   "C28 十二、其他素菜制做法": [
+   "C28 十二、其他素菜制做法 / （一）软川的制做": [
     2
    ]
   },
@@ -729,7 +908,108 @@
     "p0013.md",
     "p0014.md"
    ],
-   "toc_lines_skipped": 1246
+   "toc_lines_skipped": 1246,
+   "subchapters": [
+    {
+     "page": 104,
+     "chapter_seq": 17,
+     "sub_seq": 1,
+     "title": "（一）干贝"
+    },
+    {
+     "page": 107,
+     "chapter_seq": 17,
+     "sub_seq": 2,
+     "title": "（二）蟹类"
+    },
+    {
+     "page": 109,
+     "chapter_seq": 17,
+     "sub_seq": 3,
+     "title": "（三）蛎黄类"
+    },
+    {
+     "page": 110,
+     "chapter_seq": 17,
+     "sub_seq": 4,
+     "title": "（四）虾子类"
+    },
+    {
+     "page": 113,
+     "chapter_seq": 17,
+     "sub_seq": 5,
+     "title": "（五）鸽蛋类"
+    },
+    {
+     "page": 117,
+     "chapter_seq": 17,
+     "sub_seq": 6,
+     "title": "（六）哈什蚂"
+    },
+    {
+     "page": 118,
+     "chapter_seq": 17,
+     "sub_seq": 7,
+     "title": "（七）其他类"
+    },
+    {
+     "page": 142,
+     "chapter_seq": 17,
+     "sub_seq": 8,
+     "title": "（八）松类"
+    },
+    {
+     "page": 144,
+     "chapter_seq": 17,
+     "sub_seq": 9,
+     "title": "（九）火锅类"
+    },
+    {
+     "page": 149,
+     "chapter_seq": 18,
+     "sub_seq": 1,
+     "title": "（一）白菜类"
+    },
+    {
+     "page": 154,
+     "chapter_seq": 18,
+     "sub_seq": 2,
+     "title": "（二）豆腐"
+    },
+    {
+     "page": 162,
+     "chapter_seq": 18,
+     "sub_seq": 3,
+     "title": "（三）萝卜"
+    },
+    {
+     "page": 165,
+     "chapter_seq": 18,
+     "sub_seq": 4,
+     "title": "（四）茄子"
+    },
+    {
+     "page": 167,
+     "chapter_seq": 18,
+     "sub_seq": 5,
+     "title": "（五）其他"
+    },
+    {
+     "page": 229,
+     "chapter_seq": 23,
+     "sub_seq": 1,
+     "title": "酿菜类"
+    },
+    {
+     "page": 285,
+     "chapter_seq": 28,
+     "sub_seq": 1,
+     "title": "（一）软川的制做"
+    }
+   ],
+   "rejected_reasons": {
+    "unnumbered": 1
+   }
   }
  },
  "gates": {
@@ -737,63 +1017,7 @@
   "numbers_contiguous_per_chapter": false,
   "every_recipe_has_method": true,
   "no_numeric_only_step_block": true,
-  "G3_index": {
-   "terms": 594,
-   "families": 0,
-   "ledger_rows_used": 0,
-   "pairs": 0,
-   "forward_missing_pairs": [],
-   "backward_uncovered_gaps": []
-  },
-  "verdict": "FAIL",
-  "fails": [
-   "G2",
-   "G4"
-  ],
-  "skips": [],
-  "readings": {
-   "G0_idempotent": 0,
-   "G1_shape": {
-    "source_bytes": 49459704,
-    "recorded": 49459704,
-    "pages": 289
-   },
-   "G2_assembly": {
-    "contiguous": false,
-    "without_method": []
-   },
-   "G3_index": {
-    "check_exit": 0,
-    "families": 0,
-    "forward_missing": [],
-    "backward_uncovered": []
-   },
-   "G4_vectors": {
-    "check_exit": 0,
-    "model": "Qwen/Qwen3-VL-Embedding-8B",
-    "api_calls_last": 133,
-    "gates": {
-     "rows_match": true,
-     "ids_unique": false,
-     "unit_norm": true,
-     "sig_sensitive_to_model": true,
-     "sig_sensitive_to_dtype": true
-    }
-   },
-   "G6_fallback_zero_network": {
-    "exit": 0,
-    "tail": [
-     "判定               : PASS"
-    ]
-   },
-   "G5_portable": [],
-   "G5_banned_source": "config/forbidden-strings.txt ⇒ 2 条",
-   "G9_self_test": {
-    "exit": 0,
-    "tail": [
-     "判据: PASS 3 · FAIL 0 · SKIP(环境) 0"
-    ]
-   }
-  }
+  "all_starts_accepted": false,
+  "starts_accounted": true
  }
 }

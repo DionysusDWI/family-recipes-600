@@ -2,6 +2,6 @@
 # ★ 判据分工见 scripts/_engine.py 头注：id 承重，version 只是标签。
 # ⛔ 本文件描述**产物出处**的引擎，不是当前 scripts/ 里的引擎。
 
-artifact_engine_id=36d4d938e661ce35
-artifact_engine_version=0.1.3
-note=由 repo_check.py --accept-engine 于 2026-09-27T20:21:37+08:00 改写（旧 id=a4de1b96b41782ce）。理由：产物已按现行 v0.1.3 引擎重建：S2/S3/S4 于 2026-09-27 实跑（546 记录/3655 块/133 批向量），S4 --check 通过；已知缺口见 out/GAPS-2-for-20260926-01.md（G2/G4 仍红，归因 G-25/G-26/G-29）
+artifact_engine_id=e3decbb67ce7f3c3
+artifact_engine_version=0.1.4
+note=由 repo_check.py --accept-engine 于 2026-09-27T21:45:02+08:00 改写（旧 id=36d4d938e661ce35）。理由：产物已按现行 v0.1.4（id e3decbb67ce7f3c3）重建：S2 568 记录/3655 块/40 作用域16 子类、S3 词项 612、S4 133 批 API 且 --check 通过（离线判据 模型/签名/产物 一致）。已知缺口 G2/G4 仍红，归因转写侧（C23 单点错号 · C27 章标题漏 @@SECTION），非装配侧配置可修。

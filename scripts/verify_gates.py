@@ -122,12 +122,36 @@ def main():
         if not ok1:
             fails.append("G1")
 
-        # G2 编号/制法
+        # G2 编号/制法/拒收
         meta = json.loads((kdir / "_meta.json").read_text(encoding="utf-8"))
         c = meta["counts"]
-        ok2 = bool(c["numbers_contiguous"]) and not c["recipes_without_method"]
-        reads["G2_assembly"] = {"contiguous": c["numbers_contiguous"],
-                                "without_method": c["recipes_without_method"]}
+        # ★★ G-29：连续性判据必须**按编号作用域**取，⛔ 不是恒取「全册 1..N」。
+        #   ★ 实测踩过：`numbering: per_chapter` 的册上，全局连续**必然为假**（每章从 1 重起），
+        #     旧版读的是 `numbers_contiguous` ⇒ 它红的原因是**取错了那一格**，与装配无关。
+        contig = (bool(c.get("numbers_contiguous_per_chapter"))
+                  if c.get("numbering") == "per_chapter" else bool(c["numbers_contiguous"]))
+        # ★★ G-28：这里是**两条不同的判据**，⛔ 不可合并成一条：
+        #   `accounted`（恒等式）标记行数 ＋ 变体①起点数 == 记录数 ＋ 拒收数 ⇒ 抓「起点跑到账外」；
+        #   `accepted` （判语）  拒收 == 0                              ⇒ 抓「真的丢了内容」。
+        #   ★ 变体①（整页无标记）的起点**没有标记行**，所以 ⛔ 不能只写 `标记行数 == 记录数`。
+        starts_n, rec_n = c.get("starts_body"), c.get("recipes")
+        v1_n = c.get("recipes_from_variant1")
+        rj = c.get("rejected_starts_by_reason") or {}
+        rj_n = sum(rj.values()) if isinstance(rj, dict) else 0
+        if starts_n is None or v1_n is None:
+            # ★ 产物出自**不带拒收回执**的旧引擎 ⇒ 这一格**不可判**，⛔ 不是通过。
+            skips.append("G2_receipt")
+            starts_ok = True
+        else:
+            starts_ok = (starts_n + v1_n) == (rec_n + rj_n) and rj_n == 0
+        ok2 = contig and not c["recipes_without_method"] and starts_ok
+        reads["G2_assembly"] = {"contiguous_in_scope": contig,
+                                "numbering": c.get("numbering"),
+                                "without_method": c["recipes_without_method"],
+                                "starts_body": starts_n, "recipes_from_variant1": v1_n,
+                                "recipes": rec_n,
+                                "accepted_all_starts": None if starts_n is None else (rj_n == 0),
+                                "rejected": rj}
         if not ok2:
             fails.append("G2")
 
