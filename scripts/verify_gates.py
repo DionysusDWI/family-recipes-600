@@ -27,6 +27,8 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+from _paths import pages_dir as resolve_pages_dir       # noqa: E402  ★ G-02 的单一来源
 ABS_RE = re.compile(r"(?<![A-Za-z0-9:/])(?:[A-Za-z]:[\\/]|\\\\)")
 # ★ 禁止串清单**来自配置**，⛔ 不在代码里硬编码（缺口 G-04）。
 #   实测旧版：`BANNED = ["<tmp>", "forbidden-fragments.local"]` ——
@@ -78,6 +80,110 @@ def gate(rc, name, fails, skips, extra_bad=False):
     elif st == "skip":
         skips.append(name)
     return st
+
+
+def id_collision_attribution(kdir, cfg=None, pages_dir=None):
+    """**G-31 归因列** —— `recipe_id` 撞号是「**装配侧**」还是「**转写侧**」造成的。
+
+    ★ 为什么需要它：`G4` 的 `ids_unique=false` 把两种成因记成**同一格** ⇒
+      门**红得正确，却不指向任何可执行动作**（改配置救不了转写侧的撞号）。
+
+    ★★ 判据（v2）：对每一组撞号，取其**页跨度**（由 `corpus/blocks.jsonl` 的 `page_from` 定），
+      在跨度内找**「像边界却没被认出来」**的行 —— 满足**全部**四个条件：
+        ① 形如 `@@SECTION <t>`；② `<t>` **不在** `contract.sections` 的在册节名里；
+        ③ **不匹配** `chapter_pattern`，也**不匹配** `subchapter_pattern`（这些是**已认出来**的边界）；
+        ④ 其后**首个非空行**是 `@@RECIPE_START`（★ 与 G-29 同一判据：真子类标题后必跟一条食谱）。
+      **找到 ≥1 行 ⇒ 装配侧**（配置本可把这些边界分开，却没分开）；
+      **找不到 ⇒ 转写侧**（边界标记**根本没进产物** ⇒ 漏标；或印本号写错 ⇒ 同作用域内撞号）。
+
+    ★★ v1 判据（「`chapter`/`sub_chapter` 不同 ⇒ 装配侧」）**已被自己的反控证伪**：
+      掐掉 `subchapter_pattern` 后，两侧 `sub_chapter` **都变成空串**（⛔ 不是「不同」），
+      于是那条判据**在它本该生效的场景里永远不可能触发**。⇒ 归因**必须看页面证据**，⛔ 不看字段差异。
+
+    ★ 这是**归因**，⛔ 不是判决：它**不改变** `G4` 的红/绿（强度不变）。
+    """
+    rp = kdir / "corpus" / "recipes.jsonl"
+    bp = kdir / "corpus" / "blocks.jsonl"
+    if not rp.exists() or not bp.exists():
+        return None
+    rows = [json.loads(l) for l in rp.read_text(encoding="utf-8").splitlines() if l.strip()]
+    blocks = [json.loads(l) for l in bp.read_text(encoding="utf-8").splitlines() if l.strip()]
+    pages_of = {}
+    for b in blocks:
+        pages_of.setdefault(b.get("recipe_id"), set()).add(b.get("page_from"))
+
+    import re as _re
+    c = (cfg or {}).get("contract", {}) or {}
+    sec_names = set()
+    for group in (c.get("sections", {}) or {}).values():
+        for name in (group or []):
+            sec_names.add(_re.sub(r"\s+", "", str(name)))
+    chap_re = _re.compile(c["chapter_pattern"]) if c.get("chapter_pattern") else None
+    sub_re = _re.compile(c["subchapter_pattern"]) if c.get("subchapter_pattern") else None
+    m_sec = ((c.get("markers", {}) or {}).get("section", "@@SECTION"))
+    m_rs = ((c.get("markers", {}) or {}).get("recipe_start", "@@RECIPE_START"))
+
+    def headings_in(pages):
+        """跨度内「像边界却没被认出来」的行（页, 原文）。"""
+        # ★★ 页目录**必须**走 `_paths.pages_dir`（G-02 的单一来源），⛔ 不得拼 `kdir/_pages`。
+        #   实测踩过：夹具（`examples/printed-style`）的页文件**不在** `out/kb/<册>/_pages/`
+        #   —— S2 是**从 `pages_root` 读**、⛔ 不复制 ⇒ 拼 `kdir/_pages` 时扫描集**恒为空**，
+        #   函数**永远**返回「转写侧」。★ 是**反控**（向 2）把它抓出来的，⛔ 不是评审。
+        root = Path(pages_dir) if pages_dir else (kdir / "_pages")
+        out = []
+        for p in sorted(pages):
+            if p is None:
+                continue
+            f = root / ("p%04d.md" % p)
+            if not f.exists():
+                continue
+            lines = f.read_text(encoding="utf-8").splitlines()
+            for i, ln in enumerate(lines):
+                s = ln.strip()
+                if not s.startswith(m_sec):
+                    continue
+                t = s[len(m_sec):].strip()
+                if _re.sub(r"\s+", "", t) in sec_names:
+                    continue
+                if chap_re and chap_re.match(t):
+                    continue
+                if sub_re and sub_re.match(t):
+                    continue
+                nxt = ""
+                for n in lines[i + 1:]:
+                    if n.strip():
+                        nxt = n.strip()
+                        break
+                if nxt.startswith(m_rs):
+                    out.append({"page": p, "line": i + 1, "text": s[:60]})
+        return out
+
+    by = {}
+    for r in rows:
+        by.setdefault(r.get("recipe_id"), []).append(r)
+    dup = {k: v for k, v in by.items() if len(v) > 1}
+    asm = trans = 0
+    examples = []
+    for rid in sorted(dup):
+        grp = dup[rid]
+        pages = set()
+        for r in grp:
+            pages |= {p for p in pages_of.get(rid, set()) if p is not None}
+        hs = headings_in(pages)
+        if hs:
+            asm += 1
+            examples.append({"id": rid, "side": "assembly", "unrecognized_boundaries": hs[:3]})
+        else:
+            trans += 1
+            examples.append({"id": rid, "side": "transcription",
+                             "scope": (grp[0].get("scope_id") or ""),
+                             "chapter": grp[0].get("chapter") or "",
+                             "records": len(grp),
+                             "numbers": sorted(x.get("number") for x in grp)})
+    return {"duplicate_ids": len(dup), "assembly_side": asm, "transcription_side": trans,
+            "criterion": ("v2 页跨度内存在「结构 + 位置」都像边界却未被 chapter/subchapter 认出的 "
+                          "@@SECTION 行（其后紧跟 @@RECIPE_START）⇒ 装配侧；否则 ⇒ 转写侧"),
+            "examples": examples[:12]}
 
 
 def main():
@@ -172,7 +278,11 @@ def main():
         rep = json.loads(rp.read_text(encoding="utf-8")) if rp.exists() else {}
         g4gates = rep.get("gates", {}) or {}
         reads["G4_vectors"] = {"check_exit": rc4, "model": rep.get("model"),
-                               "api_calls_last": rep.get("api_calls"), "gates": g4gates}
+                               "api_calls_last": rep.get("api_calls"), "gates": g4gates,
+                               # ★★ G-31 归因列：**只加读数，⛔ 不改判决**（强度不变）
+                               "id_collision_attribution": id_collision_attribution(
+                                   kdir, cfg,
+                                   resolve_pages_dir(p.parent, (cfg.get("series", {}) or {}), code))}
         # ★★ 缺口 **G-24**：`--check` 的 exit 3 ＝「**签名不符 ⇒ 需重算**」。
         #    此时盘上的 `vectors_report.json` 描述的是**另一份语料**，⛔ 它的 `gates`
         #    不是对**当前**语料的证据 ⇒ 必须**先短路**。
