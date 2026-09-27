@@ -1,17 +1,7 @@
 # ENGINE.lock —— **本仓产物**是由哪一版引擎产出的。
-#
-# ★★ 判据分工（见 scripts/_engine.py 的头注）：
-#     artifact_engine_id        —— **承重**：`scripts/**/*.py` 的内容指纹，改一个字节就变。
-#     artifact_engine_version   —— 人读标签；⛔ 可以让内容不同的引擎顶着同号，单靠它**不可靠**。
-#
-# ⛔ 本文件描述的是**产物出处**的引擎，**不是**当前 `scripts/` 里的引擎。
-#    两者不等 ⇒ ★ 产物需按**现行**引擎重建；重建完成后才把这里改成现行值：
-#        python repo_check.py --accept-engine --reason "<为什么可以认为产物已重建>"
-#
-# ★ 本仓 `scripts/` 是技能 `series-book-to-rag` 的一份**只读快照**，由任务槽同步进来；
-#   技能侧继续修 bug 而本仓不同步 ⇒ 同一条命令两处两个答案（缺口 **G-17**）。
-#   本文件的存在就是为了让这种分叉**必须出声**，⛔ 而不是靠谁记得同步。
+# ★ 判据分工见 scripts/_engine.py 头注：id 承重，version 只是标签。
+# ⛔ 本文件描述**产物出处**的引擎，不是当前 scripts/ 里的引擎。
 
-artifact_engine_id=a4de1b96b41782ce
-artifact_engine_version=unrecorded
-note=同步前快照（14 个 .py · 技能侧 P2 期）。★ 该快照**没有**版本标签文件，故 version 记 unrecorded —— ⛔ 不猜。
+artifact_engine_id=36d4d938e661ce35
+artifact_engine_version=0.1.3
+note=由 repo_check.py --accept-engine 于 2026-09-27T20:21:37+08:00 改写（旧 id=a4de1b96b41782ce）。理由：产物已按现行 v0.1.3 引擎重建：S2/S3/S4 于 2026-09-27 实跑（546 记录/3655 块/133 批向量），S4 --check 通过；已知缺口见 out/GAPS-2-for-20260926-01.md（G2/G4 仍红，归因 G-25/G-26/G-29）
